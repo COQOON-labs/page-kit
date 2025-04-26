@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  check-pr-source:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    outputs:
+      from_develop: ${{ steps.check-branch.outputs.from_develop }}
+    steps:
+      - name: Check if PR is from develop
+        id: check-branch
+        run: |
+          if [ "${{ github.event.pull_request.head.ref }}" == "develop" ]; then
+            echo "from_develop=true" >> $GITHUB_OUTPUT
+          else
+            echo "from_develop=false" >> $GITHUB_OUTPUT
+          fi
+
+  release:
+    needs: check-pr-source
+    if: needs.check-pr-source.outputs.from_develop == 'true'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm run release

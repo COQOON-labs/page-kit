@@ -1,0 +1,44 @@
+{
+  "name": "page-kit",
+  "version": "0.1.0",
+  "description": "React and Tailwind component library with DIN A4 document editing capabilities",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "packageManager": "npm@10.2.5",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "release": "semantic-release",
+    "release:dry": "semantic-release --dry-run",
+    "version": "turbo version"
+  },
+  "keywords": [
+    "react",
+    "tailwind",
+    "component-library"
+  ],
+  "author": "Benjamin Gröner <bgroener@coqoon.com>",
+  "homepage": "https://coqoon.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coqoon/page-kit.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "semantic-release": "^23.0.0",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "@semantic-release/commit-analyzer": "^11.1.0"
+  }
+}

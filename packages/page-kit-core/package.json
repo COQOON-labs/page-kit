@@ -1,0 +1,59 @@
+{
+  "name": "page-kit-core",
+  "version": "0.1.0",
+  "description": "React and Tailwind component library",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "dev": "tsup src/index.tsx --format esm,cjs --dts --watch",
+    "build": "tsup src/index.tsx --format esm,cjs --dts",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "test": "jest"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "tailwindcss": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "eslint": "^8.0.0",
+    "typescript": "^5.3.0",
+    "tsup": "^8.0.0",
+    "tailwindcss": "^3.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@testing-library/react": "^14.0.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coqoon/page-kit.git"
+  },
+  "homepage": "https://coqoon.com",
+  "bugs": {
+    "url": "https://github.com/coqoon/page-kit/issues"
+  },
+  "author": "Benjamin Gröner <bgroener@coqoon.com>",
+  "keywords": [
+    "react",
+    "tailwind",
+    "ui",
+    "components",
+    "component-library",
+    "document",
+    "DIN-A4",
+    "page-editor"
+  ]
+} 

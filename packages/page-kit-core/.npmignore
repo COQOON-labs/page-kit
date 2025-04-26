@@ -1,0 +1,31 @@
+# Source files
+src/
+
+# Configuration files
+.eslintrc
+.eslintignore
+jest.config.js
+tsconfig.json
+tailwind.config.js
+postcss.config.js
+
+# Build tools
+node_modules/
+.turbo/
+
+# Development files
+*.test.tsx
+*.test.ts
+__tests__/
+coverage/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+.DS_Store
+*.log
+.env* 
