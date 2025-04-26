@@ -1,57 +1,5 @@
 import React$1, { ReactNode } from 'react';
 
-interface ButtonProps extends React$1.ButtonHTMLAttributes<HTMLButtonElement> {
-    /**
-     * The variant of the button
-     */
-    variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-    /**
-     * The size of the button
-     */
-    size?: 'sm' | 'md' | 'lg';
-    /**
-     * Optional additional className
-     */
-    className?: string;
-}
-declare const Button: React$1.ForwardRefExoticComponent<ButtonProps & React$1.RefAttributes<HTMLButtonElement>>;
-
-interface CardProps extends React$1.HTMLAttributes<HTMLDivElement> {
-    /**
-     * Optional padding variation
-     */
-    padding?: 'none' | 'sm' | 'md' | 'lg';
-    /**
-     * Optional border radius variation
-     */
-    radius?: 'none' | 'sm' | 'md' | 'lg';
-    /**
-     * Optional additional className
-     */
-    className?: string;
-}
-declare const Card: React$1.ForwardRefExoticComponent<CardProps & React$1.RefAttributes<HTMLDivElement>>;
-interface CardHeaderProps extends React$1.HTMLAttributes<HTMLDivElement> {
-    className?: string;
-}
-declare const CardHeader: React$1.ForwardRefExoticComponent<CardHeaderProps & React$1.RefAttributes<HTMLDivElement>>;
-interface CardFooterProps extends React$1.HTMLAttributes<HTMLDivElement> {
-    className?: string;
-}
-declare const CardFooter: React$1.ForwardRefExoticComponent<CardFooterProps & React$1.RefAttributes<HTMLDivElement>>;
-
-interface BadgeProps extends React$1.HTMLAttributes<HTMLSpanElement> {
-    /**
-     * The variant of the badge
-     */
-    variant?: 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
-    /**
-     * Optional additional className
-     */
-    className?: string;
-}
-declare const Badge: React$1.ForwardRefExoticComponent<BadgeProps & React$1.RefAttributes<HTMLSpanElement>>;
-
 interface PageContextType {
     scale: number;
     width: number;
@@ -94,20 +42,6 @@ declare const Page: React$1.ForwardRefExoticComponent<PageProps & React$1.RefAtt
 declare const UnstyledPage: React$1.ForwardRefExoticComponent<React$1.HTMLAttributes<HTMLDivElement> & React$1.RefAttributes<HTMLDivElement>>;
 
 /**
- * Position of an item on the page (in mm)
- */
-interface PageItemPosition {
-    x: number;
-    y: number;
-}
-/**
- * Size of an item on the page (in mm)
- */
-interface PageItemSize {
-    width: number;
-    height: number;
-}
-/**
  * Base interface for all items that can be placed on a page
  */
 interface PageItemProps {
@@ -116,33 +50,9 @@ interface PageItemProps {
      */
     id?: string;
     /**
-     * Position of the item on the page (in mm)
-     */
-    position?: PageItemPosition;
-    /**
-     * Size of the item (in mm)
-     */
-    size?: PageItemSize;
-    /**
      * Content to render inside the item
      */
     children?: ReactNode;
-    /**
-     * Whether the item can be resized
-     */
-    resizable?: boolean;
-    /**
-     * Whether the item can be moved
-     */
-    movable?: boolean;
-    /**
-     * Z-index for stacking items
-     */
-    zIndex?: number;
-    /**
-     * Optional rotation in degrees
-     */
-    rotation?: number;
     /**
      * Optional additional className
      */
@@ -240,4 +150,4 @@ declare const ShapeItem: React$1.ForwardRefExoticComponent<ShapeItemProps & Reac
  */
 declare function cn(...classes: (string | undefined | null | false)[]): string;
 
-export { Badge, type BadgeProps, Button, type ButtonProps, Card, CardFooter, type CardFooterProps, CardHeader, type CardHeaderProps, type CardProps, HeadingItem, ImageItem, type ImageItemProps, Page, PageItem, type PageItemPosition, type PageItemProps, type PageItemSize, type PageProps, ParagraphItem, ShapeItem, type ShapeItemProps, TextItem, type TextItemProps, UnstyledPage, UnstyledPageItem, cn, usePageContext };
+export { HeadingItem, ImageItem, type ImageItemProps, Page, PageItem, type PageItemProps, type PageProps, ParagraphItem, ShapeItem, type ShapeItemProps, TextItem, type TextItemProps, UnstyledPage, UnstyledPageItem, cn, usePageContext };

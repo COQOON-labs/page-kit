@@ -1,22 +1,6 @@
 import { ReactNode } from 'react';
 
 /**
- * Position of an item on the page (in mm)
- */
-export interface PageItemPosition {
-  x: number;
-  y: number;
-}
-
-/**
- * Size of an item on the page (in mm)
- */
-export interface PageItemSize {
-  width: number;
-  height: number;
-}
-
-/**
  * Base interface for all items that can be placed on a page
  */
 export interface PageItemProps {
@@ -25,33 +9,9 @@ export interface PageItemProps {
    */
   id?: string;
   /**
-   * Position of the item on the page (in mm)
-   */
-  position?: PageItemPosition;
-  /**
-   * Size of the item (in mm)
-   */
-  size?: PageItemSize;
-  /**
    * Content to render inside the item
    */
   children?: ReactNode;
-  /**
-   * Whether the item can be resized
-   */
-  resizable?: boolean;
-  /**
-   * Whether the item can be moved
-   */
-  movable?: boolean;
-  /**
-   * Z-index for stacking items
-   */
-  zIndex?: number;
-  /**
-   * Optional rotation in degrees
-   */
-  rotation?: number;
   /**
    * Optional additional className
    */
