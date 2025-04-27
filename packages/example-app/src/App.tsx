@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import DocumentExample from './DocumentExample';
 import CustomComponentsExample from './CustomComponentsExample';
+import AutoPaginationExample from './AutoPaginationExample';
 
 function App() {
-  const [activeExample, setActiveExample] = useState<'document' | 'custom'>('document');
+  const [activeExample, setActiveExample] = useState<'document' | 'custom' | 'auto'>('document');
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -32,13 +33,29 @@ function App() {
               >
                 Custom Components
               </button>
+              <button
+                className={`px-4 py-2 rounded-md ${
+                  activeExample === 'auto' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+                onClick={() => setActiveExample('auto')}
+              >
+                Auto Pagination
+              </button>
             </nav>
           </div>
         </div>
       </header>
 
       <main className="mt-4">
-        {activeExample === 'document' ? <DocumentExample /> : <CustomComponentsExample />}
+        {activeExample === 'document' ? (
+          <DocumentExample />
+        ) : activeExample === 'custom' ? (
+          <CustomComponentsExample />
+        ) : (
+          <AutoPaginationExample />
+        )}
       </main>
     </div>
   );
