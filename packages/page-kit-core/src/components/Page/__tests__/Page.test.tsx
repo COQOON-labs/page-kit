@@ -69,6 +69,6 @@ describe('Page', () => {
     const { container } = render(<Page padding={10}>Page Content</Page>);
     const page = container.querySelector('.page');
     
-    expect(page).toHaveStyle({ padding: '10mm' });
+    expect(page).toHaveStyle({ padding: '20mm 20mm 20mm 20mm' });
   });
 }); 
