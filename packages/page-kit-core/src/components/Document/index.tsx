@@ -19,12 +19,18 @@ export interface DocumentProps {
    * Optional className for the document container
    */
   className?: string;
+  
+  /**
+   * Debug mode to show height calculations (useful for troubleshooting pagination)
+   */
+  debug?: boolean;
 }
 
 export const Document: React.FC<DocumentProps> = ({ 
   pageProps = {}, 
   children,
-  className = '' 
+  className = '',
+  debug = false
 }) => {
   const [pages, setPages] = useState<React.ReactNode[][]>([]);
   const config = usePageKitConfig();
@@ -57,8 +63,8 @@ export const Document: React.FC<DocumentProps> = ({
     const headerHeightPx = config.header.show ? mmToPx(config.header.height || 0) : 0;
     const footerHeightPx = config.footer.show ? mmToPx(config.footer.height || 0) : 0;
     
-    // Calculate available content height
-    return pageHeight - paddingTopPx - paddingBottomPx - headerHeightPx - footerHeightPx;
+    // Calculate available content height with a small buffer
+    return pageHeight - paddingTopPx - paddingBottomPx - headerHeightPx - footerHeightPx + 10;
   };
   
   // Distribute items into pages based on their heights
@@ -66,6 +72,11 @@ export const Document: React.FC<DocumentProps> = ({
     const availableHeight = calculateAvailableHeight();
     const childrenArray = Children.toArray(children);
     const itemSpacingPx = mmToPx(config.layout.itemSpacing || 0);
+    
+    if (debug) {
+      console.log(`Available height per page: ${availableHeight}px`);
+      console.log(`Item spacing: ${itemSpacingPx}px`);
+    }
     
     const paginatedPages: React.ReactNode[][] = [];
     let currentPage: React.ReactNode[] = [];
@@ -77,9 +88,15 @@ export const Document: React.FC<DocumentProps> = ({
         const itemProps = item.props as PageItemProps;
         if (itemProps.dimensions?.height) {
           // Convert mm to px if needed
-          return typeof itemProps.dimensions.height === 'number' 
+          const height = typeof itemProps.dimensions.height === 'number' 
             ? mmToPx(itemProps.dimensions.height)
             : parseInt(itemProps.dimensions.height, 10);
+            
+          if (debug) {
+            console.log(`Item height (${item.type.toString()}): ${height}px`);
+          }
+          
+          return height;
         }
       }
       // Default height if none specified
@@ -96,18 +113,32 @@ export const Document: React.FC<DocumentProps> = ({
           ? itemHeight 
           : itemHeight + itemSpacingPx;
         
-        // Check if item fits on current page
-        if (currentPageHeight + heightWithSpacing <= availableHeight) {
+        const anticipatedTotalHeight = currentPageHeight + heightWithSpacing;
+        
+        // Check if item fits on current page with a small buffer for rounding errors
+        if (anticipatedTotalHeight <= availableHeight) {
           // Item fits on current page
           currentPage.push(item);
-          currentPageHeight += heightWithSpacing;
+          currentPageHeight = anticipatedTotalHeight;
+          
+          if (debug) {
+            console.log(`Added item to page. Current page height: ${currentPageHeight}px (${availableHeight - currentPageHeight}px remaining)`);
+          }
         } else {
           // Item doesn't fit, start a new page
           if (currentPage.length > 0) {
             paginatedPages.push([...currentPage]);
+            
+            if (debug) {
+              console.log(`Starting new page. Previous page filled: ${currentPageHeight}px of ${availableHeight}px`);
+            }
           }
           currentPage = [item];
           currentPageHeight = itemHeight;
+          
+          if (debug) {
+            console.log(`First item on new page. Height: ${currentPageHeight}px (${availableHeight - currentPageHeight}px remaining)`);
+          }
         }
       }
     });
@@ -117,8 +148,12 @@ export const Document: React.FC<DocumentProps> = ({
       paginatedPages.push(currentPage);
     }
     
+    if (debug) {
+      console.log(`Total pages: ${paginatedPages.length}`);
+    }
+    
     setPages(paginatedPages);
-  }, [children, pageProps.maxWidth, config]);
+  }, [children, pageProps.maxWidth, config, debug]);
   
   return (
     <div ref={documentRef} className={className}>

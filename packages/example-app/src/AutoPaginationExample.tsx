@@ -32,7 +32,7 @@ const pageKitConfig = {
   },
   layout: {
     padding: 20,
-    itemSpacing: 10
+    itemSpacing: 8  // Reduced spacing to allow more content per page
   }
 };
 
@@ -57,10 +57,11 @@ export default function AutoPaginationExample() {
               </div>
             }}
             className="flex flex-col items-center gap-8"
+            debug={true} // Enable debug mode
           >
             {/* Main heading */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 20 }}
+              dimensions={{ width: 170, height: 15 }} // Reduced height
               fontSize={24}
               color="#1a56db"
             >
@@ -68,7 +69,7 @@ export default function AutoPaginationExample() {
             </HeadingItem>
             
             <ShapeItem
-              dimensions={{ width: 170, height: 2 }}
+              dimensions={{ width: 170, height: 1 }} // Reduced height
               shapeType="line"
               borderColor="#333"
               borderWidth={0.5}
@@ -76,7 +77,7 @@ export default function AutoPaginationExample() {
             
             {/* Introduction */}
             <ParagraphItem
-              dimensions={{ width: 170, height: 40 }}
+              dimensions={{ width: 170, height: 35 }} // Adjusted height
               fontSize={12}
             >
               This document demonstrates the automatic page flow functionality. 
@@ -86,7 +87,7 @@ export default function AutoPaginationExample() {
             
             {/* First callout - should be on page 1 */}
             <CalloutItem
-              dimensions={{ width: 170, height: 40 }}
+              dimensions={{ width: 170, height: 35 }} // Reduced height
               variant="info"
               title="Automatic Pagination"
             >
@@ -108,7 +109,6 @@ export default function AutoPaginationExample() {
               dimensions={{ width: 170, height: 45 }}
               variant="tip"
               title="Design Tip"
-              showIcon={true}
             >
               When working with automatic pagination, you still need to provide appropriate 
               height values for your items. This allows the system to accurately calculate 
