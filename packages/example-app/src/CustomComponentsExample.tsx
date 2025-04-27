@@ -6,10 +6,7 @@ import {
   ParagraphItem,
   createPageItem,
   PageItemProps,
-  usePageKitConfig,
-  useElementDimensions,
-  useTextStyles,
-  useShapeStyles
+  usePageKitConfig
 } from 'page-kit-core';
 
 /**
@@ -73,7 +70,7 @@ export const HighlightBoxItem = createPageItem<HighlightBoxItemProps>({
   /**
    * The main render function for the component
    */
-  renderContent: (props, dimensionInfo) => {
+  renderContent: (props) => {
     const {
       children,
       theme = 'primary',
@@ -146,7 +143,7 @@ export const HighlightBoxItem = createPageItem<HighlightBoxItemProps>({
         </div>
         
         {footer && (
-          <div className="px-4 py-2 text-sm bg-gray-50 border-t border-gray-200">
+          <div className="px-4 py-2 text-sm border-t border-gray-200 bg-gray-50">
             {footer}
           </div>
         )}
@@ -161,6 +158,7 @@ export const HighlightBoxItem = createPageItem<HighlightBoxItemProps>({
 export interface QuoteItemProps extends PageItemProps {
   author?: string;
   citation?: string;
+  publication?: 'book' | 'article';
 }
 
 /**
@@ -176,18 +174,27 @@ export const QuoteItem = createPageItem<QuoteItemProps>({
   },
 
   // Define the render function
-  renderContent: (props, dimensionInfo) => {
-    const { children, author = "Unknown", citation } = props;
+  renderContent: (props) => {
+    const { children, author = "Unknown", citation, publication } = props;
 
     return (
-      <div className="flex flex-col h-full w-full p-4 italic border-l-4 border-gray-300">
-        <div className="flex-1 mb-4 text-gray-700">"{children}"</div>
+      <div className="flex flex-col w-full h-full p-4 italic border-l-4 border-gray-300">
+        <div className="flex-1 mb-4 text-gray-700">&ldquo;{children}&rdquo;</div>
 
-        <div className="text-right font-medium">
-          — {author}
-          {citation && (
-            <span className="block text-sm text-gray-500">{citation}</span>
+        <div className="text-sm font-medium text-right text-gray-800">
+          {publication === 'book' && (
+            <span className="block italic">
+              From &ldquo;{citation}&rdquo;
+            </span>
           )}
+          {publication === 'article' && (
+            <span className="block">
+              {citation}
+            </span>
+          )}
+          <span className="block mt-1 font-semibold">
+            &mdash; {author}
+          </span>
         </div>
       </div>
     );
@@ -301,6 +308,7 @@ export default function CustomComponentsExample() {
                 dimensions={{ width: 170, height: 70 }}
                 author="Albert Einstein"
                 citation="On Relativity, 1921"
+                publication="book"
               >
                 The important thing is not to stop questioning. Curiosity has its own reason for existing.
               </QuoteItem>
@@ -311,6 +319,7 @@ export default function CustomComponentsExample() {
                 dimensions={{ width: 80, height: 70 }}
                 author="Alan Kay"
                 citation="On Programming"
+                publication="article"
               >
                 The best way to predict the future is to invent it.
               </QuoteItem>
@@ -318,6 +327,7 @@ export default function CustomComponentsExample() {
               <QuoteItem
                 dimensions={{ width: 80, height: 70 }}
                 author="Ada Lovelace"
+                publication="book"
               >
                 The Analytical Engine has no pretensions whatever to originate anything. It can do whatever we know how to order it to perform.
               </QuoteItem>
