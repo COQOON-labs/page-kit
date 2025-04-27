@@ -57,7 +57,7 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
   // List all custom props that shouldn't be passed to DOM elements
   customProps: ['variant', 'title', 'borderColor', 'backgroundColor', 'textColor', 'icon', 'showIcon'],
   
-  renderContent: (props, dimensionInfo) => {
+  renderContent: (props) => {
     const { 
       children, 
       variant = 'info', 
@@ -111,7 +111,7 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
           title ? 'mt-1 pl-0' : (shouldShowIcon ? 'pl-6' : 'pl-0')
         )}>
           {!title && shouldShowIcon && (
-            <span className="inline-block mr-2 float-left">{calloutIcon}</span>
+            <span className="inline-block float-left mr-2">{calloutIcon}</span>
           )}
           {children}
         </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, createContext, useContext, useMemo } from 'react';
 import { cn } from '../../utils/react-helper';
 import { usePageKitConfig } from '../../config';
-import { mmToPx, DIN_A4_WIDTH_MM, DIN_A4_HEIGHT_MM } from '../../utils/dimension-helper';
+import { DIN_A4_WIDTH_MM, DIN_A4_HEIGHT_MM } from '../../utils/dimension-helper';
 import { getPaddingValues, formatPaddingCSS, filterDOMProps } from '../../utils/layout-helper';
 
 // DIN A4 has an aspect ratio of 1:√2 (height:width)

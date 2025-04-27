@@ -12,9 +12,6 @@ export const PageItem = React.forwardRef<HTMLDivElement, PageItemProps>(
     style,
     ...props
   }, ref) => {
-    // Get the page context to access scaling factors
-    const pageContext = usePageContext();
-    
     return (
       <div
         ref={ref}
