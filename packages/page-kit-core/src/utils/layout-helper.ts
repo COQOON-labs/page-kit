@@ -12,7 +12,7 @@ export function getPaddingValues(config: PageKitConfig): {
 } {
   const defaultPadding = 20; // Default 20mm padding
   
-  if (!config.layout.padding) {
+  if (!config.layout || !config.layout.padding) {
     return {
       top: defaultPadding,
       right: defaultPadding,
@@ -27,6 +27,17 @@ export function getPaddingValues(config: PageKitConfig): {
       right: config.layout.padding,
       bottom: config.layout.padding,
       left: config.layout.padding
+    };
+  }
+  
+  // Handle string padding (like '10mm')
+  if (typeof config.layout.padding === 'string') {
+    const numericPadding = parseInt(config.layout.padding, 10) || defaultPadding;
+    return {
+      top: numericPadding,
+      right: numericPadding,
+      bottom: numericPadding,
+      left: numericPadding
     };
   }
   
@@ -59,8 +70,8 @@ export function calculatePageContentHeight(
   const paddingBottomPx = mmToPx(padding.bottom);
   
   // Calculate header and footer heights
-  const headerHeightPx = config.header.show ? mmToPx(config.header.height || 0) : 0;
-  const footerHeightPx = config.footer.show ? mmToPx(config.footer.height || 0) : 0;
+  const headerHeightPx = config.header?.show ? mmToPx(config.header.height || 0) : 0;
+  const footerHeightPx = config.footer?.show ? mmToPx(config.footer.height || 0) : 0;
   
   // Buffer for rounding errors (optional)
   const buffer = addBuffer ? 10 : 0;

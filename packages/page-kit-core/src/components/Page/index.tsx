@@ -98,7 +98,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     const config = usePageKitConfig();
     
     // Use configuration values with props as override
-    const backgroundColor = background || config.colors?.background || 'white';
+    const backgroundColor = background || (config.colors ? config.colors.background : undefined) || 'white';
     
     // Calculate the actual width of the page based on container width
     const actualMaxWidth = (maxWidth * containerWidth) / 100;
@@ -109,7 +109,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     // Get padding values using utility
     const padding = useMemo(() => 
       getPaddingValues(config),
-      [config.layout.padding]
+      [config]
     );
     
     // Format padding for CSS
@@ -180,22 +180,24 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     }), [scaledHeight, containerSize.width]);
     
     // Calculate header, footer and content heights
-    const headerHeight = config.header.show ? config.header.height : 0;
-    const footerHeight = config.footer.show ? config.footer.height : 0;
+    const headerHeight = config.header?.show ? config.header.height : 0;
+    const footerHeight = config.footer?.show ? config.footer.height : 0;
     
     // Render the header component if enabled
     const renderHeader = () => {
-      if (!config.header.show) return null;
+      if (!config.header?.show) return null;
+      
+      const header = config.header;
       
       const headerStyle: React.CSSProperties = {
         height: `${headerHeight}mm`,
-        backgroundColor: config.header.backgroundColor,
-        color: config.header.textColor,
+        backgroundColor: header.backgroundColor || '#f8f9fa',
+        color: header.textColor || '#212529',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 10px',
-        marginBottom: `${config.layout.itemSpacing || 0}mm`
+        marginBottom: `${config.layout?.itemSpacing || 0}mm`
       };
       
       return (
@@ -207,17 +209,19 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     
     // Render the footer component if enabled
     const renderFooter = () => {
-      if (!config.footer.show) return null;
+      if (!config.footer?.show) return null;
+      
+      const footer = config.footer;
       
       const footerStyle: React.CSSProperties = {
         height: `${footerHeight}mm`,
-        backgroundColor: config.footer.backgroundColor,
-        color: config.footer.textColor,
+        backgroundColor: footer.backgroundColor || '#f8f9fa',
+        color: footer.textColor || '#212529',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 10px',
-        marginTop: `${config.layout.itemSpacing || 0}mm`
+        marginTop: `${config.layout?.itemSpacing || 0}mm`
       };
       
       return (
@@ -225,7 +229,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
           {footerContent || (
             <>
               <div></div>
-              {config.footer.showPageNumbers && pageNumber && totalPages ? (
+              {footer.showPageNumbers && pageNumber && totalPages ? (
                 <div>Page {pageNumber} of {totalPages}</div>
               ) : (
                 <div></div>
@@ -237,14 +241,26 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     };
     
     // Style for the content area
-    const contentStyle = useMemo(() => ({
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column' as const,
-      gap: `${config.layout.itemSpacing || 0}mm`,
-      maxWidth: config.layout.contentMaxWidth ? `${config.layout.contentMaxWidth}mm` : undefined,
-      margin: config.layout.contentMaxWidth ? '0 auto' : undefined
-    }), [config.layout.itemSpacing, config.layout.contentMaxWidth]);
+    const contentStyle = useMemo(() => {
+      const itemSpacing = config.layout?.itemSpacing || 0;
+      
+      // Default content style
+      const style: React.CSSProperties = {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: `${itemSpacing}mm`
+      };
+      
+      // Add contentMaxWidth if available
+      const contentMaxWidth = config.layout?.contentMaxWidth;
+      if (contentMaxWidth) {
+        style.maxWidth = `${contentMaxWidth}mm`;
+        style.margin = '0 auto';
+      }
+      
+      return style;
+    }, [config.layout]);
     
     return (
       <div 

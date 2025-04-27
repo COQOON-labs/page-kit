@@ -48,8 +48,8 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   
   // Memoize the spacing calculation
   const itemSpacingPx = useMemo(() => 
-    mmToPx(config.layout.itemSpacing || 0),
-    [config.layout.itemSpacing]
+    mmToPx(config.layout?.itemSpacing || 0),
+    [config.layout]
   );
   
   // Helper function to get item height from dimensions

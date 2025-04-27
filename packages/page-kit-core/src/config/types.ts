@@ -68,6 +68,10 @@ export interface HeaderConfig {
    * Text color of the header
    */
   textColor?: string;
+  /**
+   * Custom header content
+   */
+  content?: React.ReactNode;
 }
 
 /**
@@ -94,6 +98,10 @@ export interface FooterConfig {
    * Whether to show page numbers in the footer
    */
   showPageNumbers?: boolean;
+  /**
+   * Custom footer content
+   */
+  content?: React.ReactNode;
 }
 
 /**
@@ -103,7 +111,7 @@ export interface LayoutConfig {
   /**
    * Page padding in mm (can be a single number for all sides or an object with specific sides)
    */
-  padding?: number | { top?: number; right?: number; bottom?: number; left?: number };
+  padding?: number | string | { top?: number; right?: number; bottom?: number; left?: number };
   /**
    * Space between page items in mm
    */
