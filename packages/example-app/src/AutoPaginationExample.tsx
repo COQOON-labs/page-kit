@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Document, 
   PageKitConfigProvider, 
@@ -19,6 +19,12 @@ Nullam fermentum eleifend magna, eget elementum mauris consequat non. Proin id f
 Praesent euismod tincidunt diam, in suscipit justo viverra vel. Nunc in leo vel urna eleifend interdum. Cras gravida commodo elit eget blandit. Aenean malesuada mi sit amet erat maximus feugiat. Ut fringilla dui vitae placerat fringilla. Cras in commodo diam. Cras venenatis convallis orci, sed pellentesque felis dapibus ut. Pellentesque porttitor tortor eros, ut mollis tortor convallis et. Quisque iaculis massa vitae felis malesuada, eget convallis purus consectetur. Integer consectetur magna quis sem auctor, ac tempus justo volutpat. Sed sed lectus facilisis, viverra purus vel, laoreet libero. Cras faucibus neque ut felis interdum, dapibus elementum purus suscipit. Nulla eget porttitor ligula, ut suscipit nulla.
 `;
 
+// Error component to simulate failures
+const ErrorComponent = () => {
+  throw new Error('This is a test error!');
+  return null;
+};
+
 // Custom configuration for page kit
 const pageKitConfig = {
   header: {
@@ -37,11 +43,35 @@ const pageKitConfig = {
 };
 
 export default function AutoPaginationExample() {
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  // Error handler for document component
+  const handleError = (error: Error) => {
+    console.log('Document error caught:', error.message);
+    setErrorMessage(error.message);
+  };
+  
   return (
     <div className="min-h-screen p-4 bg-gray-100">
       <div className="max-w-screen-xl mx-auto">
         <h1 className="mb-4 text-2xl font-bold">Automatic Pagination Example</h1>
         <p className="mb-4">This demonstrates the automatic pagination feature based on item heights.</p>
+        
+        <div className="mb-4 flex gap-4">
+          <button 
+            onClick={() => setShowError(!showError)}
+            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+          >
+            {showError ? 'Hide Error Component' : 'Show Error Component'}
+          </button>
+          
+          {errorMessage && (
+            <div className="p-3 bg-yellow-100 text-yellow-800 rounded border border-yellow-300">
+              Error caught: {errorMessage}
+            </div>
+          )}
+        </div>
         
         <PageKitConfigProvider config={pageKitConfig}>
           <Document 
@@ -57,10 +87,11 @@ export default function AutoPaginationExample() {
               </div>
             }}
             className="flex flex-col items-center gap-8"
+            onError={handleError}
           >
             {/* Main heading */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 15 }} // Reduced height
+              dimensions={{ width: 170, height: 15 }}
               fontSize={24}
               color="#1a56db"
             >
@@ -68,15 +99,22 @@ export default function AutoPaginationExample() {
             </HeadingItem>
             
             <ShapeItem
-              dimensions={{ width: 170, height: 1 }} // Reduced height
+              dimensions={{ width: 170, height: 1 }}
               shapeType="line"
               borderColor="#333"
               borderWidth={0.5}
             />
             
+            {/* Error component (conditionally rendered) */}
+            {showError && (
+              <ParagraphItem dimensions={{ width: 170, height: 40 }}>
+                <ErrorComponent />
+              </ParagraphItem>
+            )}
+            
             {/* Introduction */}
             <ParagraphItem
-              dimensions={{ width: 170, height: 35 }} // Adjusted height
+              dimensions={{ width: 170, height: 35 }}
               fontSize={12}
             >
               This document demonstrates the automatic page flow functionality. 
@@ -86,7 +124,7 @@ export default function AutoPaginationExample() {
             
             {/* First callout - should be on page 1 */}
             <CalloutItem
-              dimensions={{ width: 170, height: 35 }} // Reduced height
+              dimensions={{ width: 170, height: 35 }}
               variant="info"
               title="Automatic Pagination"
             >
@@ -164,16 +202,14 @@ export default function AutoPaginationExample() {
         </PageKitConfigProvider>
         
         <div className="p-4 mt-8 bg-white rounded shadow">
-          <h2 className="mb-2 text-xl font-semibold">About Automatic Pagination</h2>
-          <p>
-            The automatic pagination feature provides the following benefits:
-          </p>
+          <h2 className="mb-2 text-xl font-semibold">Improvements Made</h2>
           <ul className="pl-5 mt-2 space-y-1 list-disc">
-            <li>No need to manually distribute content across pages</li>
-            <li>Content automatically flows to the next page when needed</li>
-            <li>Maintains proper spacing between items</li>
-            <li>Accounts for headers, footers, and page margins</li>
-            <li>Correctly updates page numbers across all pages</li>
+            <li><strong>Automatic pagination</strong> - Content flows naturally across pages</li>
+            <li><strong>Error handling</strong> - Boundary catches and displays errors gracefully</li>
+            <li><strong>Memoized calculations</strong> - Performance optimized with React.memo and useMemo</li>
+            <li><strong>Type-safe props</strong> - DOM props are properly filtered and typed</li>
+            <li><strong>Barrel imports</strong> - Cleaner code organization with index exports</li>
+            <li><strong>Validation</strong> - Input validation for dimension values</li>
           </ul>
         </div>
       </div>

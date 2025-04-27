@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Page,
+  Document,
   PageKitConfigProvider,
   HeadingItem,
   ParagraphItem,
@@ -10,7 +11,13 @@ import {
 } from 'page-kit-core';
 
 // Sample long text for testing page breaks
-const loremIpsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut venenatis magna et urna faucibus, vel condimentum dolor ultricies. Fusce cursus libero vitae lorem placerat, at vehicula ligula pharetra. Donec volutpat purus vitae arcu bibendum, id consequat nisi ultricies. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur at nunc in quam ullamcorper dignissim. Morbi feugiat enim ac ipsum porttitor volutpat. Phasellus id dui molestie, sagittis enim vitae, tincidunt lectus. Maecenas eget gravida felis, a accumsan nisl. Mauris non nulla congue, dictum neque nec, faucibus risus. Aliquam sed dui sit amet orci volutpat dignissim. Cras nec velit eu dui fermentum placerat. Etiam rhoncus diam vitae sem egestas porta. Cras malesuada, augue vitae ultrices interdum, magna magna pellentesque odio, sed finibus nibh urna vel nulla. Mauris non quam vitae eros imperdiet imperdiet vel non orci. Donec luctus faucibus nisi, at ultricies risus consequat vel. Nulla aliquam quam eget purus accumsan, ac congue enim accumsan. Vivamus luctus fermentum viverra. In vitae consequat eros, eget aliquet felis. Nulla vel mauris nulla. Sed sagittis dictum risus in sagittis. Nulla facilisi. In fermentum sit amet dolor vitae tempus. Quisque vel venenatis eros, vel pretium eros. Proin non massa diam. Cras dictum leo nec nisi lobortis, id tincidunt dui luctus. Nam facilisis, magna eget vulputate commodo, felis eros lobortis mi, vel placerat elit nibh ut dui. Curabitur euismod elit ac placerat malesuada. Nulla facilisi. Donec condimentum eros ut erat varius, a condimentum tortor elementum. asd asd asda sdasd asd asd asda sdas das dasd asd asd asdasd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd asd ads`;
+const loremIpsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut venenatis magna et urna faucibus, vel condimentum dolor ultricies. Fusce cursus libero vitae lorem placerat, at vehicula ligula pharetra. Donec volutpat purus vitae arcu bibendum, id consequat nisi ultricies. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur at nunc in quam ullamcorper dignissim. Morbi feugiat enim ac ipsum porttitor volutpat. Phasellus id dui molestie, sagittis enim vitae, tincidunt lectus. Maecenas eget gravida felis, a accumsan nisl. Mauris non nulla congue, dictum neque nec, faucibus risus. Aliquam sed dui sit amet orci volutpat dignissim. Cras nec velit eu dui fermentum placerat. Etiam rhoncus diam vitae sem egestas porta. Cras malesuada, augue vitae ultrices interdum, magna magna pellentesque odio, sed finibus nibh urna vel nulla. Mauris non quam vitae eros imperdiet imperdiet vel non orci. Donec luctus faucibus nisi, at ultricies risus consequat vel. Nulla aliquam quam eget purus accumsan, ac congue enim accumsan. Vivamus luctus fermentum viverra. In vitae consequat eros, eget aliquet felis. Nulla vel mauris nulla. Sed sagittis dictum risus in sagittis. Nulla facilisi. In fermentum sit amet dolor vitae tempus. Quisque vel venenatis eros, vel pretium eros. Proin non massa diam. Cras dictum leo nec nisi lobortis, id tincidunt dui luctus. Nam facilisis, magna eget vulputate commodo, felis eros lobortis mi, vel placerat elit nibh ut dui. Curabitur euismod elit ac placerat malesuada. Nulla facilisi. Donec condimentum eros ut erat varius, a condimentum tortor elementum. asd asd asda sdasd asd asd asda sdas das dasd asd asd asdasd asd asd asd asd asd asd asd asd asd asd asd asd asd asd ads`;
+
+// Error component to simulate failures
+const ErrorComponent = () => {
+  throw new Error('This is a test error!');
+  return null;
+};
 
 // Component for handling text that might overflow between pages
 function MultiPageText({
@@ -95,20 +102,75 @@ const pageKitConfig = {
 };
 
 export default function DocumentExample() {
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [key, setKey] = useState(0); // Add a key to force re-mount the Document component
+  
+  // Error handler for document component
+  const handleError = (error: Error) => {
+    console.log('Document error caught:', error.message);
+    setErrorMessage(error.message);
+  };
+
+  const ErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+    try {
+      return <>{children}</>;
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("An unknown error occurred");
+      }
+      return null;
+    }
+  };
+
+  // Reset the error state and remount the Document component
+  const resetError = () => {
+    setErrorMessage(null);
+    setKey(prev => prev + 1); // Force a remount of the Document component
+  };
+
   return (
     <div className="min-h-screen p-4 bg-gray-100">
       <div className="max-w-screen-xl mx-auto">
         <h1 className="mb-4 text-2xl font-bold">DIN A4 Document Example</h1>
         <p className="mb-4">This demonstrates a DIN A4 page with responsive scaling and multi-page text overflow.</p>
         
-        <PageKitConfigProvider config={pageKitConfig}>
-          <div className="flex flex-col items-center mb-8 space-y-8">
-            {/* First Page */}
-            <Page 
-              maxWidth={800}
-              containerWidth={100}
-              shadow={true}
-              className="mx-auto"
+        <div className="flex flex-col gap-4 mb-4 sm:flex-row sm:items-center">
+          <button
+            className="px-4 py-2 text-white transition-colors bg-red-500 rounded hover:bg-red-600"
+            onClick={() => {
+              if (showError) {
+                resetError(); // Reset error when hiding error component
+              }
+              setShowError(!showError);
+            }}
+          >
+            {showError ? "Hide Error Component" : "Show Error Component"}
+          </button>
+          
+          {errorMessage && (
+            <div className="px-4 py-2 text-yellow-800 bg-yellow-100 border border-yellow-400 rounded">
+              <strong>Error caught:</strong> {errorMessage}
+            </div>
+          )}
+        </div>
+        
+        <div className="w-full max-w-6xl p-6 mx-auto">
+          <h1 className="mb-8 text-3xl font-bold">Document Example</h1>
+          
+          <PageKitConfigProvider config={pageKitConfig}>
+            <Document 
+              key={key} // Add key to force remount when needed
+              pageProps={{
+                maxWidth: 800,
+                containerWidth: 100,
+                shadow: true,
+                className: "mx-auto"
+              }}
+              className="flex flex-col items-center mb-8 space-y-8"
+              onError={handleError}
             >
               {/* Header with logo and title */}
               <HeadingItem 
@@ -134,6 +196,13 @@ export default function DocumentExample() {
               >
                 DIN A4 Document Demo
               </HeadingItem>
+              
+              {/* Error component (conditionally rendered) */}
+              {showError && (
+                <ParagraphItem dimensions={{ width: 170, height: 40 }}>
+                  <ErrorComponent />
+                </ParagraphItem>
+              )}
               
               {/* Document info */}
               <ParagraphItem
@@ -287,92 +356,18 @@ export default function DocumentExample() {
               >
                 1
               </ParagraphItem>
-            </Page>
-            
-            {/* Second Page */}
-            <Page 
-              maxWidth={800}
-              containerWidth={100}
-              shadow={true}
-              className="mx-auto"
-            >
-              {/* Header for second page */}
-              <HeadingItem 
-                dimensions={{ width: 170, height: 15 }}
-                fontSize={14}
-                color="#333"
-              >
-                Page Kit Document - Continued
-              </HeadingItem>
-              
-              <ShapeItem
-                dimensions={{ width: 170, height: 1 }}
-                shapeType="line"
-                borderColor="#333"
-                borderWidth={0.25}
-              />
-              
-              {/* The text continuation is handled by the MultiPageText component */}
-              
-              {/* Additional content for second page */}
-              <HeadingItem 
-                dimensions={{ width: 170, height: 15 }}
-                fontSize={16}
-                color="#1a56db"
-              >
-                Additional Information
-              </HeadingItem>
-              
-              <ParagraphItem
-                dimensions={{ width: 170, height: 30 }}
-                fontSize={11}
-              >
-                This second page demonstrates how content can flow across multiple pages.
-                In a real document editor, you would implement more sophisticated text flow
-                algorithms and pagination controls.
-              </ParagraphItem>
-              
-              {/* Warning callout example */}
-              <CalloutItem
-                dimensions={{ width: 170, height: 50 }}
-                variant="warning"
-                title="Page Layout Considerations"
-              >
-                When working with multi-page documents, consider the following:
-                <ul className="list-disc pl-5 mt-1">
-                  <li>Text can flow naturally between pages</li>
-                  <li>Each page maintains its own layout grid</li>
-                  <li>Headers and footers can be consistent across pages</li>
-                </ul>
-              </CalloutItem>
-              
-              {/* Page number */}
-              <ParagraphItem
-                dimensions={{ width: 10, height: 10 }}
-                fontSize={9}
-                textAlign="right"
-                color="#999"
-                className="self-end"
-              >
-                2
-              </ParagraphItem>
-            </Page>
+            </Document>
+          </PageKitConfigProvider>
+          
+          <div className="p-4 mt-8 rounded-lg bg-blue-50">
+            <h2 className="mb-4 text-xl font-semibold">Features Demonstrated</h2>
+            <ul className="space-y-2 list-disc list-inside">
+              <li><strong>DIN A4 aspect ratio</strong> - Document maintains the standard DIN A4 proportions</li>
+              <li><strong>Responsive scaling</strong> - Document scales based on available space</li>
+              <li><strong>Error handling</strong> - The document can handle errors within components</li>
+              <li><strong>Component variety</strong> - Display of headings, paragraphs, images, shapes, and callouts</li>
+            </ul>
           </div>
-        </PageKitConfigProvider>
-        
-        <div className="p-4 bg-white rounded shadow">
-          <h2 className="mb-2 text-xl font-semibold">About Multi-Page Documents</h2>
-          <p>
-            This example demonstrates a multi-page document with text flowing between pages.
-            Key features:
-          </p>
-          <ul className="pl-5 mt-2 space-y-1 list-disc">
-            <li>Multiple DIN A4 pages in sequence</li>
-            <li>Text that flows from one page to the next</li>
-            <li>Consistent styling and layout across pages</li>
-            <li>Each page maintains proper DIN A4 proportions</li>
-            <li>Responsive scaling of all content</li>
-          </ul>
         </div>
       </div>
     </div>

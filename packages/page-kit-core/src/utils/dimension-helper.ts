@@ -1,14 +1,40 @@
 import { ImageDimensions } from '../components/PageItem/types';
 
+// Constants
+export const DPI = 96; // Standard display DPI
+export const MM_PER_INCH = 25.4;
+
+// DIN A4 standard dimensions
+export const DIN_A4_WIDTH_MM = 210;
+export const DIN_A4_HEIGHT_MM = 297;
+
 /**
  * Convert mm to pixels based on standard DPI
  * @param mm Value in millimeters
  * @returns Value in pixels
  */
 export function mmToPx(mm: number): number {
-  // Standard DPI for screens is 96 dpi
-  // 1 inch = 25.4 mm, so 1 mm = 96/25.4 ≈ 3.78 pixels
-  return mm * (96 / 25.4);
+  if (typeof mm !== 'number' || isNaN(mm)) {
+    console.warn(`Invalid mm value provided to mmToPx: ${mm}`);
+    return 0;
+  }
+  
+  // 1 inch = 25.4 mm, so 1 mm = 96/25.4 ≈ 3.78 pixels at 96 DPI
+  return mm * (DPI / MM_PER_INCH);
+}
+
+/**
+ * Convert pixels to mm
+ * @param px Value in pixels
+ * @returns Value in millimeters
+ */
+export function pxToMm(px: number): number {
+  if (typeof px !== 'number' || isNaN(px)) {
+    console.warn(`Invalid px value provided to pxToMm: ${px}`);
+    return 0;
+  }
+  
+  return px * (MM_PER_INCH / DPI);
 }
 
 /**
@@ -17,8 +43,55 @@ export function mmToPx(mm: number): number {
  * @returns Value in pixels
  */
 export function ptToPx(pt: number): number {
+  if (typeof pt !== 'number' || isNaN(pt)) {
+    console.warn(`Invalid pt value provided to ptToPx: ${pt}`);
+    return 0;
+  }
+  
   // 1pt ≈ 1.33px
   return pt * 1.33;
+}
+
+/**
+ * Validate dimensions to ensure they are usable
+ * @param dimensions The dimensions object to validate
+ * @returns True if dimensions are valid
+ */
+export function validateDimensions(dimensions?: ImageDimensions): boolean {
+  if (!dimensions) return false;
+  
+  const { width, height } = dimensions;
+  
+  // Check if either dimension is missing
+  if (width === undefined || height === undefined) {
+    return false;
+  }
+  
+  // For numeric values, ensure they're positive
+  if (typeof width === 'number' && (isNaN(width) || width <= 0)) {
+    return false;
+  }
+  
+  if (typeof height === 'number' && (isNaN(height) || height <= 0)) {
+    return false;
+  }
+  
+  // For string values, try to parse as numbers
+  if (typeof width === 'string') {
+    const numWidth = parseFloat(width);
+    if (isNaN(numWidth) || numWidth <= 0) {
+      return false;
+    }
+  }
+  
+  if (typeof height === 'string') {
+    const numHeight = parseFloat(height);
+    if (isNaN(numHeight) || numHeight <= 0) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 /**
@@ -31,7 +104,7 @@ export function processDimensions(dimensions?: ImageDimensions): {
   height: string | undefined;
   dimensionClasses: string;
 } {
-  if (!dimensions) {
+  if (!dimensions || !validateDimensions(dimensions)) {
     return { width: undefined, height: undefined, dimensionClasses: '' };
   }
 
@@ -56,7 +129,7 @@ export function processDimensions(dimensions?: ImageDimensions): {
  * @returns Style object for direct application to elements
  */
 export function dimensionsToStyle(dimensions?: ImageDimensions): React.CSSProperties {
-  if (!dimensions) return {};
+  if (!dimensions || !validateDimensions(dimensions)) return {};
   
   const { width, height } = processDimensions(dimensions);
   
@@ -64,6 +137,35 @@ export function dimensionsToStyle(dimensions?: ImageDimensions): React.CSSProper
     width,
     height
   };
+}
+
+/**
+ * Extract numeric dimension value in pixels
+ * @param dimension Dimension value in mm or px string
+ * @returns Numeric pixel value
+ */
+export function getDimensionInPx(dimension: number | string | undefined): number {
+  if (dimension === undefined) {
+    return 0;
+  }
+  
+  if (typeof dimension === 'number') {
+    return mmToPx(dimension);
+  }
+  
+  // Handle string values with units
+  if (typeof dimension === 'string') {
+    if (dimension.endsWith('px')) {
+      return parseFloat(dimension);
+    }
+    if (dimension.endsWith('mm')) {
+      return mmToPx(parseFloat(dimension));
+    }
+    // Default: try to parse as number
+    return parseFloat(dimension);
+  }
+  
+  return 0;
 }
 
 /**

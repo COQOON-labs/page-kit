@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, useMemo } from 'react';
 import { cn } from '../../utils/react-helper';
 import { usePageKitConfig } from '../../config';
+import { mmToPx, DIN_A4_WIDTH_MM, DIN_A4_HEIGHT_MM } from '../../utils/dimension-helper';
+import { getPaddingValues, formatPaddingCSS, filterDOMProps } from '../../utils/layout-helper';
 
 // DIN A4 has an aspect ratio of 1:√2 (height:width)
-const DIN_A4_RATIO = Math.sqrt(2);
-// DIN A4 standard dimensions in mm
-const DIN_A4_WIDTH_MM = 210;
-const DIN_A4_HEIGHT_MM = 297;
+export const DIN_A4_RATIO = Math.sqrt(2);
 
 // Create a context to provide the current scale factor to all child components
 interface PageContextType {
@@ -73,7 +72,10 @@ export interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   footerContent?: React.ReactNode;
 }
 
-export const Page = React.forwardRef<HTMLDivElement, PageProps>(
+/**
+ * Page component that renders a DIN A4 page with responsive scaling
+ */
+export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
   ({ 
     children, 
     maxWidth = 800, 
@@ -98,23 +100,32 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(
     // Use configuration values with props as override
     const backgroundColor = background || config.colors?.background || 'white';
     
-    // Get padding from configuration
-    const getPadding = () => {
-      const layoutPadding = config.layout.padding;
-      if (typeof layoutPadding === 'number') {
-        return `${layoutPadding}mm`;
-      } else if (layoutPadding) {
-        const { top = 0, right = 0, bottom = 0, left = 0 } = layoutPadding;
-        return `${top}mm ${right}mm ${bottom}mm ${left}mm`;
-      }
-      return '20mm'; // Default fallback
-    };
-    
     // Calculate the actual width of the page based on container width
     const actualMaxWidth = (maxWidth * containerWidth) / 100;
     
     // Calculate the height based on DIN A4 ratio
     const pageHeight = actualMaxWidth * DIN_A4_RATIO;
+    
+    // Get padding values using utility
+    const padding = useMemo(() => 
+      getPaddingValues(config),
+      [config.layout.padding]
+    );
+    
+    // Format padding for CSS
+    const paddingCSS = useMemo(() => 
+      formatPaddingCSS(padding),
+      [padding]
+    );
+    
+    // Filter out non-DOM props
+    const domSafeProps = useMemo(() => 
+      filterDOMProps(props as Record<string, unknown>, [
+        'maxWidth', 'background', 'pageClassName', 'containerWidth',
+        'shadow', 'pageNumber', 'totalPages', 'headerContent', 'footerContent'
+      ]),
+      [props]
+    );
     
     useEffect(() => {
       const updateScale = () => {
@@ -142,38 +153,35 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(
     }, [actualMaxWidth]);
     
     // Style for the container
-    const containerStyle = {
+    const containerStyle = useMemo(() => ({
       width: `${containerWidth}%`,
       maxWidth: `${actualMaxWidth}px`,
-    };
+    }), [containerWidth, actualMaxWidth]);
     
     // Style for the actual page
-    const pageStyle = {
+    const pageStyle = useMemo(() => ({
       width: `${actualMaxWidth}px`,
       height: `${pageHeight}px`,
-      padding: getPadding(),
+      padding: paddingCSS,
       backgroundColor,
       transform: `scale(${scale})`,
       transformOrigin: 'top left',
       display: 'flex',
       flexDirection: 'column' as const,
-    };
+    }), [actualMaxWidth, pageHeight, paddingCSS, backgroundColor, scale]);
     
     // The overall height that accommodates the scaled content
     const scaledHeight = pageHeight * scale;
     
     // Style for the wrapper div that accommodates the scaled page
-    const wrapperStyle = {
+    const wrapperStyle = useMemo(() => ({
       height: `${scaledHeight}px`,
       width: `${containerSize.width}px`,
-    };
+    }), [scaledHeight, containerSize.width]);
     
     // Calculate header, footer and content heights
     const headerHeight = config.header.show ? config.header.height : 0;
     const footerHeight = config.footer.show ? config.footer.height : 0;
-    
-    // Convert mm to pixels for consistent sizing
-    const mmToPx = (mm: number) => mm * (96 / 25.4);
     
     // Render the header component if enabled
     const renderHeader = () => {
@@ -229,21 +237,21 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(
     };
     
     // Style for the content area
-    const contentStyle: React.CSSProperties = {
+    const contentStyle = useMemo(() => ({
       flex: 1,
       display: 'flex',
-      flexDirection: 'column',
-      gap: `${config.layout.itemSpacing}mm`,
+      flexDirection: 'column' as const,
+      gap: `${config.layout.itemSpacing || 0}mm`,
       maxWidth: config.layout.contentMaxWidth ? `${config.layout.contentMaxWidth}mm` : undefined,
       margin: config.layout.contentMaxWidth ? '0 auto' : undefined
-    };
+    }), [config.layout.itemSpacing, config.layout.contentMaxWidth]);
     
     return (
       <div 
         ref={ref} 
         className={cn('page-container', className)} 
         style={containerStyle}
-        {...props}
+        {...domSafeProps}
       >
         <div 
           className="page-scaling-wrapper"
@@ -281,9 +289,12 @@ export const Page = React.forwardRef<HTMLDivElement, PageProps>(
       </div>
     );
   }
-);
+));
 
+// Set display name
 Page.displayName = 'Page';
+
+export default Page;
 
 export const UnstyledPage = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ children, className = '', ...props }, ref) => (

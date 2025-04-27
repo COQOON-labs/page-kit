@@ -3,6 +3,7 @@ import { cn } from '../../utils/react-helper';
 import { PageItemProps } from './types';
 import { PageItem } from './PageItem';
 import { useElementDimensions } from '../../hooks';
+import { filterDOMProps } from '../../utils/layout-helper';
 
 /**
  * Options for creating a new page item component
@@ -45,13 +46,6 @@ export interface CreatePageItemOptions<P extends PageItemProps = PageItemProps> 
   customProps?: string[];
 }
 
-// Standard HTML div props that are safe to pass to DOM
-const standardDOMProps = [
-  'id', 'className', 'style', 'onClick', 'onMouseOver', 'onMouseOut',
-  'onKeyDown', 'onKeyUp', 'tabIndex', 'role', 'aria-label', 'aria-labelledby',
-  'aria-describedby', 'data-testid'
-];
-
 /**
  * Factory function to create custom page item components
  * 
@@ -83,8 +77,14 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
     customProps = []
   } = options;
   
+  // All common props that should never be passed to DOM
+  const commonCustomProps = [
+    'dimensions', 
+    ...customProps
+  ];
+  
   // Create the component
-  const CustomPageItem = React.forwardRef<HTMLDivElement, P>((props, ref) => {
+  const CustomPageItem = React.memo(React.forwardRef<HTMLDivElement, P>((props, ref) => {
     // Merge default props
     const mergedProps = { ...defaultProps, ...props } as P;
     const { className, dimensions, children, ...restProps } = mergedProps;
@@ -98,15 +98,7 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
     const customStyles = getStyles ? getStyles(mergedProps) : {};
     
     // Filter out custom props that shouldn't be passed to DOM
-    const domSafeProps: Record<string, unknown> = {};
-    
-    // Only pass known safe DOM props
-    Object.entries(restProps as Record<string, unknown>).forEach(([key, value]) => {
-      // Skip any props that are in the customProps list or not in standardDOMProps
-      if (!customProps.includes(key) && standardDOMProps.includes(key)) {
-        domSafeProps[key] = value;
-      }
-    });
+    const domSafeProps = filterDOMProps(restProps as Record<string, unknown>, commonCustomProps);
     
     return (
       <PageItem
@@ -118,7 +110,7 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
         {renderContent ? renderContent(mergedProps, dimensionInfo) : children}
       </PageItem>
     );
-  });
+  }));
   
   // Set display name
   CustomPageItem.displayName = displayName;

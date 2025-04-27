@@ -1,8 +1,10 @@
-import React, { useState, useEffect, ReactElement, useRef, Children, isValidElement, cloneElement } from 'react';
+import React, { useState, useEffect, ReactElement, useRef, Children, isValidElement, useMemo } from 'react';
 import { Page, PageProps } from '../Page';
 import { PageItemProps } from '../PageItem/types';
 import { usePageKitConfig } from '../../config';
-import { mmToPx } from '../../utils/dimension-helper';
+import { mmToPx, getDimensionInPx } from '../../utils/dimension-helper';
+import { calculatePageContentHeight } from '../../utils/layout-helper';
+import ErrorBoundary from '../ErrorBoundary';
 
 export interface DocumentProps {
   /**
@@ -19,9 +21,17 @@ export interface DocumentProps {
    * Optional className for the document container
    */
   className?: string;
+  
+  /**
+   * Optional error handler for the error boundary
+   */
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
 }
 
-export const Document: React.FC<DocumentProps> = ({ 
+/**
+ * Document component that automatically distributes content across pages
+ */
+const DocumentContent: React.FC<DocumentProps> = React.memo(({ 
   pageProps = {}, 
   children,
   className = '' 
@@ -30,64 +40,42 @@ export const Document: React.FC<DocumentProps> = ({
   const config = usePageKitConfig();
   const documentRef = useRef<HTMLDivElement>(null);
   
-  // Calculate the available content height for a page (excluding header, footer, and padding)
-  const calculateAvailableHeight = (): number => {
+  // Memoize the available height calculation
+  const availableHeight = useMemo(() => {
     const maxWidth = pageProps.maxWidth || 800;
-    const aspectRatio = Math.sqrt(2); // DIN A4 ratio
-    const pageHeight = maxWidth * aspectRatio;
-    
-    // Get padding values
-    let paddingTop = 20;
-    let paddingBottom = 20;
-    
-    if (config.layout.padding) {
-      if (typeof config.layout.padding === 'number') {
-        paddingTop = paddingBottom = config.layout.padding;
-      } else {
-        paddingTop = config.layout.padding.top || paddingTop;
-        paddingBottom = config.layout.padding.bottom || paddingBottom;
-      }
+    return calculatePageContentHeight(maxWidth, config, true);
+  }, [pageProps.maxWidth, config]);
+  
+  // Memoize the spacing calculation
+  const itemSpacingPx = useMemo(() => 
+    mmToPx(config.layout.itemSpacing || 0),
+    [config.layout.itemSpacing]
+  );
+  
+  // Helper function to get item height from dimensions
+  const getItemHeight = (item: ReactElement): number => {
+    if (!isValidElement(item)) {
+      return mmToPx(10); // Default 10mm height
     }
     
-    // Convert mm to px
-    const paddingTopPx = mmToPx(paddingTop);
-    const paddingBottomPx = mmToPx(paddingBottom);
+    const itemProps = item.props as PageItemProps;
+    if (itemProps.dimensions?.height) {
+      return getDimensionInPx(itemProps.dimensions.height);
+    }
     
-    // Calculate header and footer heights
-    const headerHeightPx = config.header.show ? mmToPx(config.header.height || 0) : 0;
-    const footerHeightPx = config.footer.show ? mmToPx(config.footer.height || 0) : 0;
-    
-    // Calculate available content height with a small buffer
-    return pageHeight - paddingTopPx - paddingBottomPx - headerHeightPx - footerHeightPx + 10;
+    // Default height if none specified
+    return mmToPx(10); // Default 10mm height
   };
   
   // Distribute items into pages based on their heights
   useEffect(() => {
-    const availableHeight = calculateAvailableHeight();
     const childrenArray = Children.toArray(children);
-    const itemSpacingPx = mmToPx(config.layout.itemSpacing || 0);
-    
     const paginatedPages: React.ReactNode[][] = [];
     let currentPage: React.ReactNode[] = [];
     let currentPageHeight = 0;
     
-    // Helper function to get item height from dimensions
-    const getItemHeight = (item: ReactElement): number => {
-      if (isValidElement(item)) {
-        const itemProps = item.props as PageItemProps;
-        if (itemProps.dimensions?.height) {
-          // Convert mm to px if needed
-          return typeof itemProps.dimensions.height === 'number' 
-            ? mmToPx(itemProps.dimensions.height)
-            : parseInt(itemProps.dimensions.height, 10);
-        }
-      }
-      // Default height if none specified
-      return mmToPx(10); // Default 10mm height
-    };
-    
     // Process each item and distribute them to pages
-    childrenArray.forEach((item, index) => {
+    childrenArray.forEach((item) => {
       if (isValidElement(item)) {
         const itemHeight = getItemHeight(item);
         
@@ -120,7 +108,7 @@ export const Document: React.FC<DocumentProps> = ({
     }
     
     setPages(paginatedPages);
-  }, [children, pageProps.maxWidth, config]);
+  }, [children, availableHeight, itemSpacingPx]);
   
   return (
     <div ref={documentRef} className={className}>
@@ -137,6 +125,23 @@ export const Document: React.FC<DocumentProps> = ({
       ))}
     </div>
   );
+});
+
+// Set display name
+DocumentContent.displayName = 'DocumentContent';
+
+/**
+ * Document component with error boundary
+ */
+export const Document: React.FC<DocumentProps> = ({ onError, ...props }) => {
+  return (
+    <ErrorBoundary onError={onError}>
+      <DocumentContent {...props} />
+    </ErrorBoundary>
+  );
 };
+
+// Set display name
+Document.displayName = 'Document';
 
 export default Document; 
