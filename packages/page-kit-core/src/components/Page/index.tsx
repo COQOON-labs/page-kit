@@ -16,6 +16,7 @@ interface PageContextType {
   originalHeight: number;
   pageNumber?: number;
   totalPages?: number;
+  columns?: ColumnDefinition[];
 }
 
 const PageContext = createContext<PageContextType>({
@@ -28,6 +29,22 @@ const PageContext = createContext<PageContextType>({
 
 // Hook to consume the page context
 export const usePageContext = () => useContext(PageContext);
+
+// Column definition type
+export interface ColumnDefinition {
+  /**
+   * Width of the column relative to the page width (0-100)
+   */
+  width: number;
+  /**
+   * Optional gap between columns in mm
+   */
+  gap?: number;
+  /**
+   * Optional background color for the column
+   */
+  backgroundColor?: string;
+}
 
 export interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -70,7 +87,33 @@ export interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
    * Custom footer content
    */
   footerContent?: React.ReactNode;
+  /**
+   * Column definitions for this page
+   */
+  columns?: ColumnDefinition[];
 }
+
+// Validate and process column widths
+const processColumns = (columns?: ColumnDefinition[]): ColumnDefinition[] => {
+  // Default to single column if none provided
+  if (!columns || columns.length === 0) {
+    return [{ width: 100 }];
+  }
+  
+  // Calculate the sum of all widths
+  const totalWidth = columns.reduce((sum, col) => sum + col.width, 0);
+  
+  // Simple validation: log warning if columns don't sum to 100
+  if (totalWidth !== 100) {
+    console.warn(
+      `Column widths should sum to 100%. Current sum is ${totalWidth}%. ` +
+      `This may cause unexpected layout behavior.`
+    );
+  }
+  
+  // Always return the original columns - let developers handle validation errors
+  return columns;
+};
 
 /**
  * Page component that renders a DIN A4 page with responsive scaling
@@ -88,6 +131,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     totalPages,
     headerContent,
     footerContent,
+    columns,
     ...props 
   }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -96,6 +140,12 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     
     // Get configuration from context
     const config = usePageKitConfig();
+    
+    // Process columns and provide default if needed
+    const processedColumns = useMemo(() => 
+      processColumns(columns),
+      [columns]
+    );
     
     // Use configuration values with props as override
     const backgroundColor = background || (config.colors ? config.colors.background : undefined) || 'white';
@@ -122,7 +172,8 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     const domSafeProps = useMemo(() => 
       filterDOMProps(props as Record<string, unknown>, [
         'maxWidth', 'background', 'pageClassName', 'containerWidth',
-        'shadow', 'pageNumber', 'totalPages', 'headerContent', 'footerContent'
+        'shadow', 'pageNumber', 'totalPages', 'headerContent', 'footerContent',
+        'columns'
       ]),
       [props]
     );
@@ -240,7 +291,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
       );
     };
     
-    // Style for the content area
+    // Determine column layout or default content style
     const contentStyle = useMemo(() => {
       const itemSpacing = config.layout?.itemSpacing || 0;
       
@@ -252,15 +303,91 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
         gap: `${itemSpacing}mm`
       };
       
-      // Add contentMaxWidth if available
+      // Add contentMaxWidth if available and no columns are defined
       const contentMaxWidth = config.layout?.contentMaxWidth;
-      if (contentMaxWidth) {
+      if (contentMaxWidth && !processedColumns.length) {
         style.maxWidth = `${contentMaxWidth}mm`;
         style.margin = '0 auto';
       }
       
+      // If columns are defined, use different layout
+      if (processedColumns && processedColumns.length > 0) {
+        style.flexDirection = 'row';
+        style.gap = `${processedColumns[0].gap || itemSpacing}mm`;
+      }
+      
       return style;
-    }, [config.layout]);
+    }, [config.layout, processedColumns]);
+    
+    // Render column layout if columns are defined
+    const renderContent = () => {
+      // If no columns defined, return children directly
+      if (!processedColumns || processedColumns.length === 0) {
+        return (
+          <div className="page-content" style={contentStyle}>
+            {children}
+          </div>
+        );
+      }
+      
+      // If columns are defined, organize children based on columnIndex
+      const childrenArray = React.Children.toArray(children);
+      const columnCount = processedColumns.length;
+      
+      // Create arrays for each column
+      const columnItems: React.ReactNode[][] = Array(columnCount).fill(null).map(() => []);
+      
+      // Organize items with columnIndex specified
+      const remainingItems: React.ReactNode[] = [];
+      
+      childrenArray.forEach((item) => {
+        if (React.isValidElement(item) && typeof item.props.columnIndex === 'number') {
+          const colIndex = item.props.columnIndex;
+          // Only add to column if the index is valid
+          if (colIndex >= 0 && colIndex < columnCount) {
+            columnItems[colIndex].push(item);
+          } else {
+            // If column index is invalid, add to remaining items
+            remainingItems.push(item);
+          }
+        } else {
+          // Items without columnIndex are added to remaining items
+          remainingItems.push(item);
+        }
+      });
+      
+      // Distribute remaining items evenly across columns
+      if (remainingItems.length > 0) {
+        const itemsPerColumn = Math.ceil(remainingItems.length / columnCount);
+        
+        remainingItems.forEach((item, idx) => {
+          const targetColIndex = Math.floor(idx / itemsPerColumn);
+          // Make sure we don't exceed column count
+          const safeColIndex = Math.min(targetColIndex, columnCount - 1);
+          columnItems[safeColIndex].push(item);
+        });
+      }
+      
+      return (
+        <div className="page-content columns" style={contentStyle}>
+          {processedColumns.map((column, idx) => {
+            const columnStyle: React.CSSProperties = {
+              width: `${column.width}%`,
+              backgroundColor: column.backgroundColor,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: `${config.layout?.itemSpacing || 0}mm`
+            };
+            
+            return (
+              <div key={`column-${idx}`} className="page-column" style={columnStyle}>
+                {columnItems[idx]}
+              </div>
+            );
+          })}
+        </div>
+      );
+    };
     
     return (
       <div 
@@ -291,13 +418,12 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
                 originalWidth: DIN_A4_WIDTH_MM,
                 originalHeight: DIN_A4_HEIGHT_MM,
                 pageNumber,
-                totalPages
+                totalPages,
+                columns: processedColumns
               }}
             >
               {renderHeader()}
-              <div className="page-content" style={contentStyle}>
-                {children}
-              </div>
+              {renderContent()}
               {renderFooter()}
             </PageContext.Provider>
           </div>

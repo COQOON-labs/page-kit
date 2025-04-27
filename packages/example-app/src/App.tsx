@@ -2,9 +2,10 @@ import { useState } from 'react';
 import DocumentExample from './DocumentExample';
 import CustomComponentsExample from './CustomComponentsExample';
 import AutoPaginationExample from './AutoPaginationExample';
+import ColumnLayoutExample from './ColumnLayoutExample';
 
 function App() {
-  const [activeExample, setActiveExample] = useState<'document' | 'custom' | 'auto'>('document');
+  const [activeExample, setActiveExample] = useState<'document' | 'custom' | 'auto' | 'columns'>('document');
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -43,6 +44,16 @@ function App() {
               >
                 Auto Pagination
               </button>
+              <button
+                className={`px-4 py-2 rounded-md ${
+                  activeExample === 'columns' 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+                onClick={() => setActiveExample('columns')}
+              >
+                Column Layouts
+              </button>
             </nav>
           </div>
         </div>
@@ -53,8 +64,10 @@ function App() {
           <DocumentExample />
         ) : activeExample === 'custom' ? (
           <CustomComponentsExample />
-        ) : (
+        ) : activeExample === 'auto' ? (
           <AutoPaginationExample />
+        ) : (
+          <ColumnLayoutExample />
         )}
       </main>
     </div>

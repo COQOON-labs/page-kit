@@ -1,10 +1,30 @@
 import React, { useState, useEffect, ReactElement, useRef, Children, isValidElement, useMemo } from 'react';
-import { Page, PageProps } from '../Page';
+import { Page, PageProps, ColumnDefinition } from '../Page';
 import { PageItemProps } from '../PageItem/types';
 import { usePageKitConfig } from '../../config';
 import { mmToPx, getDimensionInPx } from '../../utils/dimension-helper';
 import { calculatePageContentHeight } from '../../utils/layout-helper';
 import ErrorBoundary from '../ErrorBoundary';
+
+// Validate column widths
+const validateColumns = (columns?: ColumnDefinition[]): ColumnDefinition[] | undefined => {
+  if (!columns || columns.length === 0) {
+    return undefined;
+  }
+  
+  // Calculate the sum of all widths
+  const totalWidth = columns.reduce((sum, col) => sum + col.width, 0);
+  
+  // Validate total width and warn if not 100%
+  if (totalWidth !== 100) {
+    console.warn(
+      `Document columns: Widths should sum to 100%. Current sum is ${totalWidth}%. ` +
+      `This may cause unexpected layout behavior.`
+    );
+  }
+  
+  return columns;
+};
 
 export interface DocumentProps {
   /**
@@ -26,6 +46,13 @@ export interface DocumentProps {
    * Optional error handler for the error boundary
    */
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+
+  /**
+   * Column definitions to be applied to all pages in the document
+   * Page-specific columns will override these if defined
+   * Column widths should sum to 100%
+   */
+  columns?: ColumnDefinition[];
 }
 
 /**
@@ -34,11 +61,18 @@ export interface DocumentProps {
 const DocumentContent: React.FC<DocumentProps> = React.memo(({ 
   pageProps = {}, 
   children,
-  className = '' 
+  className = '',
+  columns
 }) => {
   const [pages, setPages] = useState<React.ReactNode[][]>([]);
   const config = usePageKitConfig();
   const documentRef = useRef<HTMLDivElement>(null);
+  
+  // Validate document-level columns
+  const validatedColumns = useMemo(() => 
+    validateColumns(columns),
+    [columns]
+  );
   
   // Memoize the available height calculation
   const availableHeight = useMemo(() => {
@@ -112,17 +146,46 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   
   return (
     <div ref={documentRef} className={className}>
-      {pages.map((pageItems, index) => (
-        <Page
-          key={`page-${index}`}
-          {...pageProps}
-          pageNumber={index + 1}
-          totalPages={pages.length}
-          className={`${pageProps.className || ''} ${index > 0 ? 'mt-8' : ''}`}
-        >
-          {pageItems}
-        </Page>
-      ))}
+      {pages.map((pageItems, index) => {
+        // Check if any of the page items has a columns prop that would override document columns
+        const pageSpecificColumnsItem = pageItems.find(item => {
+          if (isValidElement(item) && (item.props as any).columns) {
+            return true;
+          }
+          return false;
+        });
+        
+        // Use page-specific columns if defined, otherwise use document columns
+        let effectiveColumns = validatedColumns;
+        
+        if (pageSpecificColumnsItem) {
+          const pageSpecificColumns = (pageSpecificColumnsItem as ReactElement).props.columns;
+          // Validate page-specific columns
+          if (pageSpecificColumns) {
+            const totalWidth = pageSpecificColumns.reduce((sum: number, col: ColumnDefinition) => sum + col.width, 0);
+            if (totalWidth !== 100) {
+              console.warn(
+                `Page ${index + 1} columns: Widths should sum to 100%. Current sum is ${totalWidth}%. ` +
+                `This may cause unexpected layout behavior.`
+              );
+            }
+          }
+          effectiveColumns = pageSpecificColumns;
+        }
+          
+        return (
+          <Page
+            key={`page-${index}`}
+            {...pageProps}
+            columns={effectiveColumns}
+            pageNumber={index + 1}
+            totalPages={pages.length}
+            className={`${pageProps.className || ''} ${index > 0 ? 'mt-8' : ''}`}
+          >
+            {pageItems}
+          </Page>
+        );
+      })}
     </div>
   );
 });

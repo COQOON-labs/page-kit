@@ -5,7 +5,8 @@ import {
   HeadingItem, 
   ParagraphItem, 
   ShapeItem,
-  CalloutItem
+  CalloutItem,
+  ColumnDefinition
 } from '../../page-kit-core/src';
 
 // Sample long text for testing
@@ -42,6 +43,12 @@ const pageKitConfig = {
   }
 };
 
+// Define column layouts for specific pages
+const twoColumnLayout: ColumnDefinition[] = [
+  { width: 48, gap: 5 },
+  { width: 52, backgroundColor: '#f8f9fa' }
+];
+
 export default function AutoPaginationExample() {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -58,16 +65,16 @@ export default function AutoPaginationExample() {
         <h1 className="mb-4 text-2xl font-bold">Automatic Pagination Example</h1>
         <p className="mb-4">This demonstrates the automatic pagination feature based on item heights.</p>
         
-        <div className="mb-4 flex gap-4">
+        <div className="flex gap-4 mb-4">
           <button 
             onClick={() => setShowError(!showError)}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            className="px-4 py-2 text-white transition-colors bg-red-500 rounded hover:bg-red-600"
           >
             {showError ? 'Hide Error Component' : 'Show Error Component'}
           </button>
           
           {errorMessage && (
-            <div className="p-3 bg-yellow-100 text-yellow-800 rounded border border-yellow-300">
+            <div className="p-3 text-yellow-800 bg-yellow-100 border border-yellow-300 rounded">
               Error caught: {errorMessage}
             </div>
           )}
@@ -126,7 +133,7 @@ export default function AutoPaginationExample() {
             <CalloutItem
               dimensions={{ width: 170, height: 35 }}
               variant="info"
-              title="Automatic Pagination"
+              calloutTitle="Automatic Pagination"
             >
               With automatic pagination, you no longer need to manually place items on specific pages.
               The system automatically calculates where each item should be placed based on its dimensions.
@@ -141,45 +148,107 @@ export default function AutoPaginationExample() {
               {loremIpsum.split('\n\n')[0]}
             </ParagraphItem>
             
-            {/* Second callout - will be on page 2 */}
+            {/* Column layout marker - this will apply columns to the next page */}
+            <ParagraphItem 
+              dimensions={{ width: 0, height: 0 }}
+              columns={twoColumnLayout}
+            />
+            
+            {/* Second callout - will be on page 2 in the first column */}
             <CalloutItem
-              dimensions={{ width: 170, height: 45 }}
+              dimensions={{ width: 80, height: 45 }}
               variant="tip"
-              title="Design Tip"
+              calloutTitle="Design Tip"
+              columnIndex={0}
             >
               When working with automatic pagination, you still need to provide appropriate 
               height values for your items. This allows the system to accurately calculate 
               page breaks.
             </CalloutItem>
             
-            {/* Second paragraph of lorem ipsum */}
+            {/* Second paragraph of lorem ipsum - in the second column */}
             <ParagraphItem
-              dimensions={{ width: 170, height: 80 }}
+              dimensions={{ width: 80, height: 80 }}
               fontSize={11}
               lineHeight={1.4}
+              columnIndex={1}
             >
               {loremIpsum.split('\n\n')[1]}
             </ParagraphItem>
             
-            {/* Third callout - will be on page 3 */}
-            <CalloutItem
-              dimensions={{ width: 170, height: 50 }}
-              variant="warning"
-              title="Page Layout Considerations"
+            {/* Reset to single column layout */}
+            <ParagraphItem
+              dimensions={{ width: 0, height: 0 }}
+              columns={[{ width: 100 }]}
+            />
+            
+            {/* Heading for column demo */}
+            <HeadingItem 
+              dimensions={{ width: 170, height: 15 }}
+              fontSize={16}
+              color="#333"
             >
-              Remember that each page has its own layout constraints. Headers and footers 
-              will be consistent across all pages, and the system accounts for their space
-              when calculating page breaks.
+              Column Layout Demo
+            </HeadingItem>
+            
+            {/* Explanation of the column layout */}
+            <ParagraphItem
+              dimensions={{ width: 170, height: 30 }}
+              fontSize={11}
+            >
+              The previous page demonstrated a two-column layout. Items can be assigned to specific columns
+              using the columnIndex property. The system handles pagination with columns automatically.
+              Columns can have different widths and even background colors.
+            </ParagraphItem>
+            
+            {/* Three-column layout for this page */}
+            <ParagraphItem
+              dimensions={{ width: 0, height: 0 }}
+              columns={[
+                { width: 30, backgroundColor: '#f0f9ff' },
+                { width: 40 },
+                { width: 30, backgroundColor: '#f0f9ff' }
+              ]}
+            />
+            
+            {/* Content for first column */}
+            <ParagraphItem
+              dimensions={{ width: 50, height: 50 }}
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={0}
+            >
+              This text appears in the first column. Notice how the columns maintain their relative 
+              widths and proper spacing. The left and right columns have a subtle background color.
+            </ParagraphItem>
+            
+            {/* Content for second column */}
+            <CalloutItem
+              dimensions={{ width: 60, height: 50 }}
+              variant="warning"
+              calloutTitle="Page Layout Considerations"
+              columnIndex={1}
+            >
+              Remember that each page has its own layout constraints. Columns only apply to the 
+              specific page they are defined on.
             </CalloutItem>
             
-            {/* Third paragraph of lorem ipsum */}
+            {/* Content for third column */}
             <ParagraphItem
-              dimensions={{ width: 170, height: 70 }}
-              fontSize={11}
-              lineHeight={1.4}
+              dimensions={{ width: 50, height: 50 }}
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={2}
             >
-              {loremIpsum.split('\n\n')[2]}
+              This text appears in the third column. You can specify different column widths to create 
+              various layouts. The sum of all column widths should equal 100%.
             </ParagraphItem>
+            
+            {/* Reset to single column */}
+            <ParagraphItem
+              dimensions={{ width: 0, height: 0 }}
+              columns={[{ width: 100 }]}
+            />
             
             {/* Final heading - will be on the last page */}
             <HeadingItem 
@@ -197,6 +266,7 @@ export default function AutoPaginationExample() {
             >
               As demonstrated, the automatic pagination system distributes content
               intelligently across multiple pages, maintaining proper layout and spacing.
+              Column layouts provide even more flexibility for creating complex documents.
             </ParagraphItem>
           </Document>
         </PageKitConfigProvider>
@@ -208,7 +278,7 @@ export default function AutoPaginationExample() {
             <li><strong>Error handling</strong> - Boundary catches and displays errors gracefully</li>
             <li><strong>Memoized calculations</strong> - Performance optimized with React.memo and useMemo</li>
             <li><strong>Type-safe props</strong> - DOM props are properly filtered and typed</li>
-            <li><strong>Barrel imports</strong> - Cleaner code organization with index exports</li>
+            <li><strong>Column layouts</strong> - Support for multi-column pages with individual item placement</li>
             <li><strong>Validation</strong> - Input validation for dimension values</li>
           </ul>
         </div>

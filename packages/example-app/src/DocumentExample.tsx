@@ -10,7 +10,7 @@ import {
 } from 'page-kit-core';
 
 // Sample long text for testing page breaks
-const loremIpsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut venenatis magna et urna faucibus, vel condimentum dolor ultricies. Fusce cursus libero vitae lorem placerat, at vehicula ligula pharetra. Donec volutpat purus vitae arcu bibendum, id consequat nisi ultricies. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur at nunc in quam ullamcorper dignissim. Morbi feugiat enim ac ipsum porttitor volutpat. Phasellus id dui molestie, sagittis enim vitae, tincidunt lectus. Maecenas eget gravida felis, a accumsan nisl. Mauris non nulla congue, dictum neque nec, faucibus risus. Aliquam sed dui sit amet orci volutpat dignissim. Cras nec velit eu dui fermentum placerat. Etiam rhoncus diam vitae sem egestas porta. Cras malesuada, augue vitae ultrices interdum, magna magna pellentesque odio, sed finibus nibh urna vel nulla. Mauris non quam vitae eros imperdiet imperdiet vel non orci. Donec luctus faucibus nisi, at ultricies risus consequat vel. Nulla aliquam quam eget purus accumsan, ac congue enim accumsan. Vivamus luctus fermentum viverra. In vitae consequat eros, eget aliquet felis. Nulla vel mauris nulla. Sed sagittis dictum risus in sagittis. Nulla facilisi. In fermentum sit amet dolor vitae tempus. Quisque vel venenatis eros, vel pretium eros. Proin non massa diam. Cras dictum leo nec nisi lobortis, id tincidunt dui luctus. Nam facilisis, magna eget vulputate commodo, felis eros lobortis mi, vel placerat elit nibh ut dui. Curabitur euismod elit ac placerat malesuada. Nulla facilisi. Donec condimentum eros ut erat varius, a condimentum tortor elementum. asd asd asda sdasd asd asd asda sdas das dasd asd asd asdasd asd asd asd asd asd asd asd asd asd asd asd asd asd ads`;
+const loremIpsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut venenatis magna et urna faucibus, vel condimentum dolor ultricies. Fusce cursus libero vitae lorem placerat, at vehicula ligula pharetra. Donec volutpat purus vitae arcu bibendum, id consequat nisi ultricies. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Curabitur at nunc in quam ullamcorper dignissim. Morbi feugiat enim ac ipsum porttitor volutpat. Phasellus id dui molestie, sagittis enim vitae, tincidunt lectus. Maecenas eget gravida felis, a accumsan nisl. Mauris non nulla congue, dictum neque nec, faucibus risus. Aliquam sed dui sit amet orci volutpat dignissim. Cras nec velit eu dui fermentum placerat. Etiam rhoncus diam vitae sem egestas porta. Cras malesuada, augue vitae ultrices interdum, magna magna pellentesque odio, sed finibus nibh urna vel nulla. Mauris non quam vitae eros imperdiet imperdiet vel non orci. Donec luctus faucibus nisi, at ultricies risus consequat vel. Nulla aliquam quam eget purus accumsan, ac congue enim accumsan. Vivamus luctus fermentum viverra. In vitae consequat eros, eget aliquet felis. Nulla vel mauris nulla. Sed sagittis dictum risus in sagittis. Nulla facilisi. In fermentum sit amet dolor vitae tempus. Quisque vel venenatis eros, vel pretium eros. Proin non massa diam. Cras dictum leo nec nisi lobortis, id tincidunt dui luctus. Nam facilisis, magna eget vulputate commodo, felis eros lobortis mi, vel placerat elit nibh ut dui. Curabitur euismod elit ac placerat malesuada. Nulla facilisi. Donec condimentum eros ut erat varius, a condimentum tortor elementum. asd asd asda sdasd asd asd asda sdas das dasd asd asd asdasd asd asd asd asd asd asd asd asd asd asd asd asd ads`;
 
 // Error component to simulate failures
 const ErrorComponent = () => {
@@ -205,7 +205,7 @@ export default function DocumentExample() {
               <CalloutItem
                 dimensions={{ width: 170, height: 40 }}
                 variant="info"
-                title="Important Information"
+                calloutTitle="Important Information"
               >
                 This document demonstrates the different page items available in Page Kit.
                 Each component maintains proper sizing and position as the document is scaled.
@@ -325,7 +325,7 @@ export default function DocumentExample() {
               <CalloutItem
                 dimensions={{ width: 170, height: 35 }}
                 variant="tip"
-                title="Design Tip"
+                calloutTitle="Design Tip"
                 showIcon={true}
               >
                 To create visually appealing documents, maintain consistent spacing 

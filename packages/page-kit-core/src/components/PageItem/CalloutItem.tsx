@@ -16,7 +16,7 @@ export interface CalloutItemProps extends PageItemProps {
   /**
    * Optional title for the callout
    */
-  title?: React.ReactNode;
+  calloutTitle?: React.ReactNode;
   
   /**
    * Border color override
@@ -55,13 +55,13 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
     showIcon: true,
   },
   // List all custom props that shouldn't be passed to DOM elements
-  customProps: ['variant', 'title', 'borderColor', 'backgroundColor', 'textColor', 'icon', 'showIcon'],
+  customProps: ['variant', 'calloutTitle', 'borderColor', 'backgroundColor', 'textColor', 'icon', 'showIcon'],
   
   renderContent: (props) => {
     const { 
       children, 
       variant = 'info', 
-      title,
+      calloutTitle,
       borderColor,
       backgroundColor,
       textColor,
@@ -97,20 +97,20 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
           color: variantStyles.textColor,
         }}
       >
-        {title && (
+        {calloutTitle && (
           <div className="flex items-center mb-2 font-bold">
             {shouldShowIcon && (
               <span className="mr-2">{calloutIcon}</span>
             )}
-            <div>{title}</div>
+            <div>{calloutTitle}</div>
           </div>
         )}
         
         <div className={cn(
           'flex-1', 
-          title ? 'mt-1 pl-0' : (shouldShowIcon ? 'pl-6' : 'pl-0')
+          calloutTitle ? 'mt-1 pl-0' : (shouldShowIcon ? 'pl-6' : 'pl-0')
         )}>
-          {!title && shouldShowIcon && (
+          {!calloutTitle && shouldShowIcon && (
             <span className="inline-block float-left mr-2">{calloutIcon}</span>
           )}
           {children}

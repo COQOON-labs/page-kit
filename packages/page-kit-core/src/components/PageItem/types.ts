@@ -1,4 +1,6 @@
 import { ReactNode, CSSProperties } from 'react';
+import React from 'react';
+import { ColumnDefinition } from '../Page';
 
 /**
  * Image dimensions
@@ -17,7 +19,7 @@ export interface ImageDimensions {
 /**
  * Base interface for all items that can be placed on a page
  */
-export interface PageItemProps {
+export interface PageItemProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Unique identifier for the item
    */
@@ -42,6 +44,16 @@ export interface PageItemProps {
    * Explicit dimensions for the item
    */
   dimensions?: ImageDimensions;
+  /**
+   * Optional column index where this item should be placed
+   * Only used when the parent Page has columns defined
+   */
+  columnIndex?: number;
+  /**
+   * Optional columns definition for a page
+   * This is used when the PageItem represents a Page and wants to define columns
+   */
+  columns?: ColumnDefinition[];
 }
 
 /**
@@ -124,4 +136,13 @@ export interface ShapeItemProps extends PageItemProps {
    * Explicit dimensions for the shape
    */
   dimensions?: ImageDimensions;
+}
+
+export interface Dimensions {
+  width?: string | number;
+  height?: string | number;
+  maxWidth?: string | number;
+  maxHeight?: string | number;
+  minWidth?: string | number;
+  minHeight?: string | number;
 } 
