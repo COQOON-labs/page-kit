@@ -1,0 +1,29 @@
+.imageContainer {
+  /* Container styles will be applied dynamically via attributes */
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+}
+
+/* Object fit variations */
+.contain {
+  object-fit: contain;
+}
+
+.cover {
+  object-fit: cover;
+}
+
+.fill {
+  object-fit: fill;
+}
+
+.none {
+  object-fit: none;
+}
+
+.scaleDown {
+  object-fit: scale-down;
+} 

@@ -1,0 +1,14 @@
+/* Image item dimensions handling */
+.page-image-item[data-has-dimensions="true"] {
+  width: var(--dim-width);
+  height: var(--dim-height);
+}
+
+/* Convert mm to pixel values using CSS custom properties */
+.page-image-item[data-has-dimensions="true"][data-width][data-height] {
+  --mm-to-px: calc(96 / 25.4); /* 96dpi / 25.4mm per inch */
+  
+  /* Apply width and height based on data attributes */
+  --dim-width: attr(data-width px); /* Fallback syntax */
+  --dim-height: attr(data-height px); /* Fallback syntax */
+} 

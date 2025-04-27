@@ -2,7 +2,11 @@ import React from 'react';
 import { cn } from '../../utils/react-helper';
 import { TextItemProps } from './types';
 import { PageItem } from './PageItem';
+import { useElementDimensions, useTextStyles } from '../../hooks';
 
+/**
+ * Base text item component for displaying formatted text
+ */
 export const TextItem = React.forwardRef<HTMLDivElement, TextItemProps>(
   ({ 
     children,
@@ -13,29 +17,29 @@ export const TextItem = React.forwardRef<HTMLDivElement, TextItemProps>(
     textAlign = 'left',
     lineHeight = 1.5,
     className = '',
+    dimensions,
     ...props
   }, ref) => {
-    // Convert pt to px (1pt ≈ 1.33px)
-    const ptToPx = (pt: number) => pt * 1.33;
-    
-    const textStyle: React.CSSProperties = {
-      fontSize: `${ptToPx(fontSize)}px`,
+    // Use custom hooks for dimensions and text styling
+    const { dimensionClasses } = useElementDimensions(dimensions);
+    const { textStyles, textClasses } = useTextStyles({
+      fontSize,
       fontFamily,
       fontWeight,
       color,
       textAlign,
-      lineHeight,
-    };
+      lineHeight
+    });
     
     return (
       <PageItem
         ref={ref}
-        className={cn('page-text-item', className)}
+        className={cn('page-text-item', dimensionClasses, className)}
         {...props}
       >
         <div 
-          className="h-full w-full overflow-hidden"
-          style={textStyle}
+          className={cn('h-full w-full', textClasses)}
+          style={textStyles}
         >
           {children}
         </div>
@@ -46,6 +50,9 @@ export const TextItem = React.forwardRef<HTMLDivElement, TextItemProps>(
 
 TextItem.displayName = 'TextItem';
 
+/**
+ * Heading component for displaying titles and headings
+ */
 export const HeadingItem = React.forwardRef<HTMLDivElement, TextItemProps>(
   ({ 
     children,
@@ -69,6 +76,9 @@ export const HeadingItem = React.forwardRef<HTMLDivElement, TextItemProps>(
 
 HeadingItem.displayName = 'HeadingItem';
 
+/**
+ * Paragraph component for displaying regular text content
+ */
 export const ParagraphItem = React.forwardRef<HTMLDivElement, TextItemProps>(
   ({ 
     children,

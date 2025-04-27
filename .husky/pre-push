@@ -1,0 +1,2 @@
+# Run lint but don't fail the push
+npm run lint || true

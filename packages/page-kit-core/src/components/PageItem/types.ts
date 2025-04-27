@@ -1,19 +1,17 @@
-import { ReactNode } from 'react';
+import { ReactNode, CSSProperties } from 'react';
 
 /**
- * Position of an item on the page (in mm)
+ * Image dimensions
  */
-export interface PageItemPosition {
-  x: number;
-  y: number;
-}
-
-/**
- * Size of an item on the page (in mm)
- */
-export interface PageItemSize {
-  width: number;
-  height: number;
+export interface ImageDimensions {
+  /**
+   * Width in mm or CSS units (e.g. '200px', '50%')
+   */
+  width: number | string;
+  /**
+   * Height in mm or CSS units (e.g. '200px', '50%')
+   */
+  height: number | string;
 }
 
 /**
@@ -25,33 +23,9 @@ export interface PageItemProps {
    */
   id?: string;
   /**
-   * Position of the item on the page (in mm)
-   */
-  position?: PageItemPosition;
-  /**
-   * Size of the item (in mm)
-   */
-  size?: PageItemSize;
-  /**
    * Content to render inside the item
    */
   children?: ReactNode;
-  /**
-   * Whether the item can be resized
-   */
-  resizable?: boolean;
-  /**
-   * Whether the item can be moved
-   */
-  movable?: boolean;
-  /**
-   * Z-index for stacking items
-   */
-  zIndex?: number;
-  /**
-   * Optional rotation in degrees
-   */
-  rotation?: number;
   /**
    * Optional additional className
    */
@@ -60,6 +34,14 @@ export interface PageItemProps {
    * Optional onClick handler
    */
   onClick?: (event: React.MouseEvent) => void;
+  /**
+   * Optional inline styles
+   */
+  style?: CSSProperties;
+  /**
+   * Explicit dimensions for the item
+   */
+  dimensions?: ImageDimensions;
 }
 
 /**
@@ -90,6 +72,10 @@ export interface TextItemProps extends PageItemProps {
    * Line height
    */
   lineHeight?: number | string;
+  /**
+   * Explicit dimensions for the text element
+   */
+  dimensions?: ImageDimensions;
 }
 
 /**
@@ -108,6 +94,10 @@ export interface ImageItemProps extends PageItemProps {
    * How the image should fit within its container
    */
   objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+  /**
+   * Explicit dimensions for the image
+   */
+  dimensions?: ImageDimensions;
 }
 
 /**
@@ -130,4 +120,8 @@ export interface ShapeItemProps extends PageItemProps {
    * Border width in mm
    */
   borderWidth?: number;
+  /**
+   * Explicit dimensions for the shape
+   */
+  dimensions?: ImageDimensions;
 } 
