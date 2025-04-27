@@ -9,6 +9,7 @@ export const PageItem = React.forwardRef<HTMLDivElement, PageItemProps>(
     className = '',
     onClick,
     children,
+    style,
     ...props
   }, ref) => {
     // Get the page context to access scaling factors
@@ -20,6 +21,7 @@ export const PageItem = React.forwardRef<HTMLDivElement, PageItemProps>(
         id={id}
         className={cn('page-item', className)}
         onClick={onClick}
+        style={style}
         {...props}
       >
         {children}
