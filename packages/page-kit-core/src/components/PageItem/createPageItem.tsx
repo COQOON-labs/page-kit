@@ -38,7 +38,19 @@ export interface CreatePageItemOptions<P extends PageItemProps = PageItemProps> 
    * Default props to merge
    */
   defaultProps?: Partial<P>;
+  
+  /**
+   * Custom props that should not be passed to the DOM
+   */
+  customProps?: string[];
 }
+
+// Standard HTML div props that are safe to pass to DOM
+const standardDOMProps = [
+  'id', 'className', 'style', 'onClick', 'onMouseOver', 'onMouseOut',
+  'onKeyDown', 'onKeyUp', 'tabIndex', 'role', 'aria-label', 'aria-labelledby',
+  'aria-describedby', 'data-testid'
+];
 
 /**
  * Factory function to create custom page item components
@@ -55,7 +67,8 @@ export interface CreatePageItemOptions<P extends PageItemProps = PageItemProps> 
  *   ),
  *   defaultProps: { 
  *     color: 'blue'
- *   }
+ *   },
+ *   customProps: ['color']
  * });
  * ```
  */
@@ -66,14 +79,15 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
     renderContent,
     getAdditionalClasses,
     getStyles,
-    defaultProps
+    defaultProps,
+    customProps = []
   } = options;
   
   // Create the component
   const CustomPageItem = React.forwardRef<HTMLDivElement, P>((props, ref) => {
     // Merge default props
     const mergedProps = { ...defaultProps, ...props } as P;
-    const { className, dimensions, children, ...rest } = mergedProps;
+    const { className, dimensions, children, ...restProps } = mergedProps;
     
     // Handle dimensions
     const dimensionInfo = useElementDimensions(dimensions);
@@ -83,12 +97,23 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
     const additionalClasses = getAdditionalClasses ? getAdditionalClasses(mergedProps) : '';
     const customStyles = getStyles ? getStyles(mergedProps) : {};
     
+    // Filter out custom props that shouldn't be passed to DOM
+    const domSafeProps: Record<string, unknown> = {};
+    
+    // Only pass known safe DOM props
+    Object.entries(restProps as Record<string, unknown>).forEach(([key, value]) => {
+      // Skip any props that are in the customProps list or not in standardDOMProps
+      if (!customProps.includes(key) && standardDOMProps.includes(key)) {
+        domSafeProps[key] = value;
+      }
+    });
+    
     return (
       <PageItem
         ref={ref}
         className={cn(baseClassName, dimensionClasses, additionalClasses, className)}
         style={customStyles}
-        {...rest}
+        {...domSafeProps}
       >
         {renderContent ? renderContent(mergedProps, dimensionInfo) : children}
       </PageItem>

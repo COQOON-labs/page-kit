@@ -19,18 +19,12 @@ export interface DocumentProps {
    * Optional className for the document container
    */
   className?: string;
-  
-  /**
-   * Debug mode to show height calculations (useful for troubleshooting pagination)
-   */
-  debug?: boolean;
 }
 
 export const Document: React.FC<DocumentProps> = ({ 
   pageProps = {}, 
   children,
-  className = '',
-  debug = false
+  className = '' 
 }) => {
   const [pages, setPages] = useState<React.ReactNode[][]>([]);
   const config = usePageKitConfig();
@@ -73,11 +67,6 @@ export const Document: React.FC<DocumentProps> = ({
     const childrenArray = Children.toArray(children);
     const itemSpacingPx = mmToPx(config.layout.itemSpacing || 0);
     
-    if (debug) {
-      console.log(`Available height per page: ${availableHeight}px`);
-      console.log(`Item spacing: ${itemSpacingPx}px`);
-    }
-    
     const paginatedPages: React.ReactNode[][] = [];
     let currentPage: React.ReactNode[] = [];
     let currentPageHeight = 0;
@@ -88,15 +77,9 @@ export const Document: React.FC<DocumentProps> = ({
         const itemProps = item.props as PageItemProps;
         if (itemProps.dimensions?.height) {
           // Convert mm to px if needed
-          const height = typeof itemProps.dimensions.height === 'number' 
+          return typeof itemProps.dimensions.height === 'number' 
             ? mmToPx(itemProps.dimensions.height)
             : parseInt(itemProps.dimensions.height, 10);
-            
-          if (debug) {
-            console.log(`Item height (${item.type.toString()}): ${height}px`);
-          }
-          
-          return height;
         }
       }
       // Default height if none specified
@@ -115,30 +98,18 @@ export const Document: React.FC<DocumentProps> = ({
         
         const anticipatedTotalHeight = currentPageHeight + heightWithSpacing;
         
-        // Check if item fits on current page with a small buffer for rounding errors
+        // Check if item fits on current page
         if (anticipatedTotalHeight <= availableHeight) {
           // Item fits on current page
           currentPage.push(item);
           currentPageHeight = anticipatedTotalHeight;
-          
-          if (debug) {
-            console.log(`Added item to page. Current page height: ${currentPageHeight}px (${availableHeight - currentPageHeight}px remaining)`);
-          }
         } else {
           // Item doesn't fit, start a new page
           if (currentPage.length > 0) {
             paginatedPages.push([...currentPage]);
-            
-            if (debug) {
-              console.log(`Starting new page. Previous page filled: ${currentPageHeight}px of ${availableHeight}px`);
-            }
           }
           currentPage = [item];
           currentPageHeight = itemHeight;
-          
-          if (debug) {
-            console.log(`First item on new page. Height: ${currentPageHeight}px (${availableHeight - currentPageHeight}px remaining)`);
-          }
         }
       }
     });
@@ -148,12 +119,8 @@ export const Document: React.FC<DocumentProps> = ({
       paginatedPages.push(currentPage);
     }
     
-    if (debug) {
-      console.log(`Total pages: ${paginatedPages.length}`);
-    }
-    
     setPages(paginatedPages);
-  }, [children, pageProps.maxWidth, config, debug]);
+  }, [children, pageProps.maxWidth, config]);
   
   return (
     <div ref={documentRef} className={className}>

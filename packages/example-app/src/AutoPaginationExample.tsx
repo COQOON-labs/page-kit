@@ -57,7 +57,6 @@ export default function AutoPaginationExample() {
               </div>
             }}
             className="flex flex-col items-center gap-8"
-            debug={true} // Enable debug mode
           >
             {/* Main heading */}
             <HeadingItem 

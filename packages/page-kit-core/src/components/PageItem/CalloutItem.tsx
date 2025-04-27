@@ -54,6 +54,8 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
     variant: 'info',
     showIcon: true,
   },
+  // List all custom props that shouldn't be passed to DOM elements
+  customProps: ['variant', 'title', 'borderColor', 'backgroundColor', 'textColor', 'icon', 'showIcon'],
   
   renderContent: (props, dimensionInfo) => {
     const { 
@@ -80,6 +82,9 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
     // Get the appropriate icon
     const calloutIcon = getCalloutIcon(variant, icon);
     
+    // Determine if we should show the icon
+    const shouldShowIcon = showIcon && calloutIcon;
+    
     return (
       <div
         className={cn(
@@ -94,7 +99,7 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
       >
         {title && (
           <div className="flex items-center mb-2 font-bold">
-            {showIcon && calloutIcon && (
+            {shouldShowIcon && (
               <span className="mr-2">{calloutIcon}</span>
             )}
             <div>{title}</div>
@@ -103,9 +108,9 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
         
         <div className={cn(
           'flex-1', 
-          title ? 'mt-1 pl-0' : (showIcon && calloutIcon ? 'pl-6' : 'pl-0')
+          title ? 'mt-1 pl-0' : (shouldShowIcon ? 'pl-6' : 'pl-0')
         )}>
-          {!title && showIcon && calloutIcon && (
+          {!title && shouldShowIcon && (
             <span className="inline-block mr-2 float-left">{calloutIcon}</span>
           )}
           {children}
