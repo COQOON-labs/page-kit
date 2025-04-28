@@ -2,7 +2,8 @@ import React from 'react';
 import { cn } from '../../utils/react-helper';
 import { TextItemProps } from './types';
 import { PageItem } from './PageItem';
-import { useElementDimensions, useTextStyles } from '../../hooks';
+import { useTextStyles } from '../../hooks';
+import { filterDOMProps } from '../../utils/layout-helper';
 
 /**
  * Base text item component for displaying formatted text
@@ -17,11 +18,9 @@ export const TextItem = React.forwardRef<HTMLDivElement, TextItemProps>(
     textAlign = 'left',
     lineHeight = 1.5,
     className = '',
-    dimensions,
     ...props
   }, ref) => {
-    // Use custom hooks for dimensions and text styling
-    const { dimensionClasses } = useElementDimensions(dimensions);
+    // Use custom hooks for text styling
     const { textStyles, textClasses } = useTextStyles({
       fontSize,
       fontFamily,
@@ -31,11 +30,16 @@ export const TextItem = React.forwardRef<HTMLDivElement, TextItemProps>(
       lineHeight
     });
     
+    // Filter out non-DOM props
+    const domSafeProps = filterDOMProps(props as Record<string, unknown>, [
+      'columnIndex', 'columns'
+    ]);
+    
     return (
       <PageItem
         ref={ref}
-        className={cn('page-text-item', dimensionClasses, className)}
-        {...props}
+        className={cn('page-text-item', className)}
+        {...domSafeProps}
       >
         <div 
           className={cn('h-full w-full', textClasses)}

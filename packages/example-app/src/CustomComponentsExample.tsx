@@ -5,16 +5,36 @@ import {
   HeadingItem,
   ParagraphItem,
   createPageItem,
-  PageItemProps,
-  usePageKitConfig
+  PageItemProps
 } from 'page-kit-core';
+
+/**
+ * Custom CSS for components
+ */
+const CustomComponentStyles = () => (
+  <style>{`
+    .page-highlight-box {
+      border-color: var(--theme-color);
+    }
+    .bg-theme-color {
+      background-color: var(--theme-color);
+    }
+  `}</style>
+);
+
+/**
+ * Helper function to combine class names
+ */
+const cn = (...classes: (string | boolean | undefined)[]) => {
+  return classes.filter(Boolean).join(' ');
+};
 
 /**
  * Props for the HighlightBoxItem component
  * @interface HighlightBoxItemProps
  * @extends PageItemProps - Always extend the base PageItemProps
  */
-export interface HighlightBoxItemProps extends PageItemProps {
+export interface HighlightBoxItemProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onClick'>, PageItemProps {
   /**
    * The highlight theme color
    * @default 'primary'
@@ -30,7 +50,7 @@ export interface HighlightBoxItemProps extends PageItemProps {
    * Border radius size
    * @default 'medium'
    */
-  rounded?: 'none' | 'small' | 'medium' | 'large' | 'full';
+  rounded?: 'none' | 'small' | 'medium' | 'large';
   
   /**
    * Whether to add a shadow
@@ -45,112 +65,73 @@ export interface HighlightBoxItemProps extends PageItemProps {
 }
 
 /**
- * HighlightBoxItem - A custom component for creating highlighted content boxes
+ * A custom highlight box component that can be used in a PageKit page
  */
-export const HighlightBoxItem = createPageItem<HighlightBoxItemProps>({
-  /**
-   * The display name for the component (used in dev tools and error messages)
-   */
-  displayName: 'HighlightBoxItem',
-  
-  /**
-   * The base CSS class name for the component
-   */
-  baseClassName: 'page-highlight-box',
-  
-  /**
-   * Default props
-   */
-  defaultProps: {
-    theme: 'primary',
-    rounded: 'medium',
-    shadow: false,
-  },
-  
-  /**
-   * The main render function for the component
-   */
-  renderContent: (props) => {
-    const {
-      children,
-      theme = 'primary',
+export const HighlightBoxItem = React.forwardRef<HTMLDivElement, HighlightBoxItemProps>(
+  (
+    {
       heading,
-      rounded = 'medium',
-      shadow = false,
       footer,
-    } = props;
-    
-    // Access the global configuration
-    const config = usePageKitConfig();
-    
-    // Get theme colors
-    const getThemeColor = () => {
-      switch (theme) {
-        case 'primary': return config.colors?.primary || '#0d6efd';
-        case 'secondary': return config.colors?.secondary || '#6c757d';
-        case 'accent': return config.colors?.info || '#0ea5e9';
-        case 'muted': return '#f8f9fa';
-        default: return config.colors?.primary || '#0d6efd';
-      }
+      theme = 'primary',
+      className,
+      rounded = 'none',
+      shadow = false,
+      children,
+      ...rest
+    },
+    ref
+  ) => {
+    const themeColors = {
+      primary: '#0070f3',
+      secondary: '#0ea5e9',
+      accent: '#f59e0b',
+      muted: '#6b7280',
     };
-    
-    // Get border radius based on setting
-    const getBorderRadius = () => {
-      switch (rounded) {
-        case 'none': return '';
-        case 'small': return 'rounded';
-        case 'medium': return 'rounded-md';
-        case 'large': return 'rounded-lg';
-        case 'full': return 'rounded-full';
-        default: return 'rounded-md';
-      }
+
+    const color = themeColors[theme];
+    const roundedClasses = {
+      none: '',
+      small: 'rounded',
+      medium: 'rounded-md',
+      large: 'rounded-lg',
     };
-    
-    // Generate classes
+
     const boxClasses = cn(
-      'flex flex-col overflow-hidden border',
-      getBorderRadius(),
+      'p-4 border-2 page-highlight-box h-full w-full',
+      roundedClasses[rounded],
       shadow && 'shadow-md',
-      theme === 'muted' ? 'border-gray-200' : `border-${theme}`
+      className
     );
-    
-    const color = getThemeColor();
-    const isDark = theme !== 'muted';
-    
-    return (
-      <div 
-        className={boxClasses}
-        style={{
-          borderColor: color,
-          height: '100%',
-          width: '100%',
-        }}
-      >
-        {heading && (
-          <div 
-            className={cn(
-              'px-4 py-2 font-bold',
-              isDark ? 'text-white' : 'text-gray-800'
-            )}
-            style={{ backgroundColor: color }}
-          >
-            {heading}
-          </div>
-        )}
-        
-        <div className="flex-1 p-4 bg-white">
-          {children}
+
+    const renderContent = () => {
+      return (
+        <div 
+          className={boxClasses}
+          style={{"--theme-color": color} as React.CSSProperties}
+          ref={ref}
+          {...rest}
+        >
+          {heading && (
+            <div className={cn(
+              'px-4 py-2 font-bold bg-theme-color',
+              theme === 'muted' ? 'text-gray-800' : 'text-white'
+            )}>
+              {heading}
+            </div>
+          )}
+          <div className="p-4">{children}</div>
+          {footer && <div className="mt-4 text-sm text-gray-500">{footer}</div>}
+          <CustomComponentStyles />
         </div>
-        
-        {footer && (
-          <div className="px-4 py-2 text-sm border-t border-gray-200 bg-gray-50">
-            {footer}
-          </div>
-        )}
-      </div>
-    );
+      );
+    };
+
+    return renderContent();
   }
-});
+);
+
+// Set display name
+HighlightBoxItem.displayName = 'HighlightBoxItem';
 
 /**
  * Props for the QuoteItem component
@@ -201,11 +182,6 @@ export const QuoteItem = createPageItem<QuoteItemProps>({
   },
 });
 
-// Helper function for className merging (copied from the core library)
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ');
-}
-
 export default function CustomComponentsExample() {
   return (
     <div className="min-h-screen p-4 bg-gray-100">
@@ -222,7 +198,6 @@ export default function CustomComponentsExample() {
           >
             {/* Main heading */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 20 }}
               fontSize={24}
               color="#1a56db"
             >
@@ -230,7 +205,6 @@ export default function CustomComponentsExample() {
             </HeadingItem>
             
             <ParagraphItem
-              dimensions={{ width: 170, height: 30 }}
               fontSize={12}
             >
               This example demonstrates how to create custom components that integrate seamlessly 
@@ -240,7 +214,6 @@ export default function CustomComponentsExample() {
             
             {/* HighlightBox examples */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 15 }}
               fontSize={16}
               color="#333"
             >
@@ -250,7 +223,6 @@ export default function CustomComponentsExample() {
             <div className="flex flex-row gap-4">
               {/* Primary theme */}
               <HighlightBoxItem
-                dimensions={{ width: 80, height: 80 }}
                 theme="primary"
                 heading="Primary Box"
                 rounded="medium"
@@ -262,7 +234,6 @@ export default function CustomComponentsExample() {
               
               {/* Secondary theme */}
               <HighlightBoxItem
-                dimensions={{ width: 80, height: 80 }}
                 theme="secondary"
                 heading="Secondary Box"
                 rounded="large"
@@ -274,7 +245,6 @@ export default function CustomComponentsExample() {
             <div className="flex flex-row gap-4 mt-4">
               {/* Accent theme */}
               <HighlightBoxItem
-                dimensions={{ width: 80, height: 80 }}
                 theme="accent"
                 heading="Accent Box"
                 rounded="small"
@@ -285,7 +255,6 @@ export default function CustomComponentsExample() {
               
               {/* Muted theme */}
               <HighlightBoxItem
-                dimensions={{ width: 80, height: 80 }}
                 theme="muted"
                 heading="Muted Box"
                 rounded="none"
@@ -296,7 +265,6 @@ export default function CustomComponentsExample() {
             
             {/* Quote examples */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 15 }}
               fontSize={16}
               color="#333"
             >
@@ -305,7 +273,6 @@ export default function CustomComponentsExample() {
             
             <div className="flex flex-row gap-4">
               <QuoteItem
-                dimensions={{ width: 170, height: 70 }}
                 author="Albert Einstein"
                 citation="On Relativity, 1921"
                 publication="book"
@@ -316,7 +283,6 @@ export default function CustomComponentsExample() {
             
             <div className="flex flex-row gap-4 mt-4">
               <QuoteItem
-                dimensions={{ width: 80, height: 70 }}
                 author="Alan Kay"
                 citation="On Programming"
                 publication="article"
@@ -325,7 +291,6 @@ export default function CustomComponentsExample() {
               </QuoteItem>
               
               <QuoteItem
-                dimensions={{ width: 80, height: 70 }}
                 author="Ada Lovelace"
                 publication="book"
               >
@@ -335,7 +300,6 @@ export default function CustomComponentsExample() {
             
             {/* Creating Custom Components Section */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 15 }}
               fontSize={16}
               color="#333"
             >
@@ -343,7 +307,6 @@ export default function CustomComponentsExample() {
             </HeadingItem>
             
             <ParagraphItem
-              dimensions={{ width: 170, height: 80 }}
               fontSize={11}
             >
               To create your own custom components:

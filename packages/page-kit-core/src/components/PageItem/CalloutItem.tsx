@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils/react-helper';
-import { PageItemProps } from './types';
+import { PageItemProps, ImageDimensions } from './types';
 import { createPageItem } from './createPageItem';
 import { usePageKitConfig } from '../../config';
 
@@ -42,6 +42,11 @@ export interface CalloutItemProps extends PageItemProps {
    * Whether to show an icon
    */
   showIcon?: boolean;
+  
+  /**
+   * Explicit dimensions for the callout
+   */
+  dimensions?: ImageDimensions;
 }
 
 /**
@@ -56,6 +61,7 @@ export const CalloutItem = createPageItem<CalloutItemProps>({
   },
   // List all custom props that shouldn't be passed to DOM elements
   customProps: ['variant', 'calloutTitle', 'borderColor', 'backgroundColor', 'textColor', 'icon', 'showIcon'],
+  supportsDimensions: true,
   
   renderContent: (props) => {
     const { 

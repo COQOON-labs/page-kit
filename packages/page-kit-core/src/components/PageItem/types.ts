@@ -41,10 +41,6 @@ export interface PageItemProps extends React.HTMLAttributes<HTMLDivElement> {
    */
   style?: CSSProperties;
   /**
-   * Explicit dimensions for the item
-   */
-  dimensions?: ImageDimensions;
-  /**
    * Optional column index where this item should be placed
    * Only used when the parent Page has columns defined
    */
@@ -84,10 +80,6 @@ export interface TextItemProps extends PageItemProps {
    * Line height
    */
   lineHeight?: number | string;
-  /**
-   * Explicit dimensions for the text element
-   */
-  dimensions?: ImageDimensions;
 }
 
 /**

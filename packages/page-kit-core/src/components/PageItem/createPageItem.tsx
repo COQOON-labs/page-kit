@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils/react-helper';
-import { PageItemProps } from './types';
+import { PageItemProps, ImageItemProps, ShapeItemProps } from './types';
 import { PageItem } from './PageItem';
 import { useElementDimensions } from '../../hooks';
 import { filterDOMProps } from '../../utils/layout-helper';
@@ -23,7 +23,7 @@ export interface CreatePageItemOptions<P extends PageItemProps = PageItemProps> 
    * Optional render function to customize the content
    * If not provided, children will be rendered directly
    */
-  renderContent?: (props: P, dimensionInfo: ReturnType<typeof useElementDimensions>) => React.ReactNode;
+  renderContent?: (props: P, dimensionInfo?: ReturnType<typeof useElementDimensions>) => React.ReactNode;
   
   /**
    * Optional function to extract additional classes
@@ -44,6 +44,11 @@ export interface CreatePageItemOptions<P extends PageItemProps = PageItemProps> 
    * Custom props that should not be passed to the DOM
    */
   customProps?: string[];
+  
+  /**
+   * Whether this component supports dimensions (only for image and shape items)
+   */
+  supportsDimensions?: boolean;
 }
 
 /**
@@ -74,12 +79,13 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
     getAdditionalClasses,
     getStyles,
     defaultProps,
-    customProps = []
+    customProps = [],
+    supportsDimensions = false
   } = options;
   
   // All common props that should never be passed to DOM
   const commonCustomProps = [
-    'dimensions', 
+    ...(supportsDimensions ? ['dimensions'] : []), 
     ...customProps
   ];
   
@@ -87,11 +93,19 @@ export function createPageItem<P extends PageItemProps>(options: CreatePageItemO
   const CustomPageItem = React.memo(React.forwardRef<HTMLDivElement, P>((props, ref) => {
     // Merge default props
     const mergedProps = { ...defaultProps, ...props } as P;
-    const { className, dimensions, children, ...restProps } = mergedProps;
+    const { className, children, ...restProps } = mergedProps;
     
-    // Handle dimensions
-    const dimensionInfo = useElementDimensions(dimensions);
-    const { dimensionClasses } = dimensionInfo;
+    // Handle dimensions if supported (only for image and shape items)
+    let dimensionInfo;
+    let dimensionClasses = '';
+    
+    if (supportsDimensions) {
+      const dimensions = 'dimensions' in restProps ? (restProps as any).dimensions : undefined;
+      if (dimensions) {
+        dimensionInfo = useElementDimensions(dimensions);
+        dimensionClasses = dimensionInfo.dimensionClasses;
+      }
+    }
     
     // Get additional classes and styles
     const additionalClasses = getAdditionalClasses ? getAdditionalClasses(mergedProps) : '';

@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '../../utils/react-helper';
 import { PageItemProps } from './types';
 import { usePageContext } from '../Page';
+import { filterDOMProps } from '../../utils/layout-helper';
 
 export const PageItem = React.forwardRef<HTMLDivElement, PageItemProps>(
   ({ 
@@ -12,6 +13,11 @@ export const PageItem = React.forwardRef<HTMLDivElement, PageItemProps>(
     style,
     ...props
   }, ref) => {
+    // Filter out non-DOM props
+    const domSafeProps = filterDOMProps(props as Record<string, unknown>, [
+      'columnIndex', 'columns'
+    ]);
+    
     return (
       <div
         ref={ref}
@@ -19,7 +25,7 @@ export const PageItem = React.forwardRef<HTMLDivElement, PageItemProps>(
         className={cn('page-item', className)}
         onClick={onClick}
         style={style}
-        {...props}
+        {...domSafeProps}
       >
         {children}
       </div>

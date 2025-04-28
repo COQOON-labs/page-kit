@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useRef, createContext, useContext, useMemo } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
 import { cn } from '../../utils/react-helper';
 import { usePageKitConfig } from '../../config';
 import { DIN_A4_WIDTH_MM, DIN_A4_HEIGHT_MM } from '../../utils/dimension-helper';
 import { getPaddingValues, formatPaddingCSS, filterDOMProps } from '../../utils/layout-helper';
+import { validateColumnWidths, organizeItemsByColumn } from '../../utils/column-helper';
 
 // DIN A4 has an aspect ratio of 1:√2 (height:width)
 export const DIN_A4_RATIO = Math.sqrt(2);
@@ -89,31 +90,10 @@ export interface PageProps extends React.HTMLAttributes<HTMLDivElement> {
   footerContent?: React.ReactNode;
   /**
    * Column definitions for this page
+   * Column widths should sum to 100%
    */
   columns?: ColumnDefinition[];
 }
-
-// Validate and process column widths
-const processColumns = (columns?: ColumnDefinition[]): ColumnDefinition[] => {
-  // Default to single column if none provided
-  if (!columns || columns.length === 0) {
-    return [{ width: 100 }];
-  }
-  
-  // Calculate the sum of all widths
-  const totalWidth = columns.reduce((sum, col) => sum + col.width, 0);
-  
-  // Simple validation: log warning if columns don't sum to 100
-  if (totalWidth !== 100) {
-    console.warn(
-      `Column widths should sum to 100%. Current sum is ${totalWidth}%. ` +
-      `This may cause unexpected layout behavior.`
-    );
-  }
-  
-  // Always return the original columns - let developers handle validation errors
-  return columns;
-};
 
 /**
  * Page component that renders a DIN A4 page with responsive scaling
@@ -141,9 +121,9 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     // Get configuration from context
     const config = usePageKitConfig();
     
-    // Process columns and provide default if needed
+    // Process columns and provide default if needed - using our centralized utility
     const processedColumns = useMemo(() => 
-      processColumns(columns),
+      validateColumnWidths(columns, "Page"),
       [columns]
     );
     
@@ -178,20 +158,21 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
       [props]
     );
     
+    // Update scale based on container size
+    const updateScale = useCallback(() => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        // Calculate scale factor based on the container's width and the page's original width
+        const newScale = containerWidth / actualMaxWidth;
+        setScale(newScale);
+        setContainerSize({
+          width: containerWidth,
+          height: containerWidth * DIN_A4_RATIO,
+        });
+      }
+    }, [actualMaxWidth]);
+    
     useEffect(() => {
-      const updateScale = () => {
-        if (containerRef.current) {
-          const containerWidth = containerRef.current.offsetWidth;
-          // Calculate scale factor based on the container's width and the page's original width
-          const newScale = containerWidth / actualMaxWidth;
-          setScale(newScale);
-          setContainerSize({
-            width: containerWidth,
-            height: containerWidth * DIN_A4_RATIO,
-          });
-        }
-      };
-      
       // Initial calculation
       updateScale();
       
@@ -201,7 +182,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
       return () => {
         window.removeEventListener('resize', updateScale);
       };
-    }, [actualMaxWidth]);
+    }, [updateScale]);
     
     // Style for the container
     const containerStyle = useMemo(() => ({
@@ -233,6 +214,49 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     // Calculate header, footer and content heights
     const headerHeight = config.header?.show ? config.header.height : 0;
     const footerHeight = config.footer?.show ? config.footer.height : 0;
+    
+    // Determine column layout or default content style
+    const contentStyle = useMemo(() => {
+      const itemSpacing = config.layout?.itemSpacing || 0;
+      
+      // Default content style
+      const style: React.CSSProperties = {
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: `${itemSpacing}mm`
+      };
+      
+      // Add contentMaxWidth if available and no columns are defined
+      const contentMaxWidth = config.layout?.contentMaxWidth;
+      if (contentMaxWidth && !processedColumns.length) {
+        style.maxWidth = `${contentMaxWidth}mm`;
+        style.margin = '0 auto';
+      }
+      
+      // If columns are defined, use different layout
+      if (processedColumns && processedColumns.length > 0) {
+        style.flexDirection = 'row';
+        style.gap = `${processedColumns[0].gap || itemSpacing}mm`;
+      }
+      
+      return style;
+    }, [config.layout, processedColumns]);
+    
+    // Memoize children array to avoid unnecessary re-renders
+    const childrenArray = useMemo(() => 
+      React.Children.toArray(children),
+      [children]
+    );
+    
+    // Memoize column items distribution
+    const columnItems = useMemo(() => {
+      if (!processedColumns || processedColumns.length === 0) {
+        return null;
+      }
+      
+      return organizeItemsByColumn(processedColumns, childrenArray);
+    }, [processedColumns, childrenArray]);
     
     // Render the header component if enabled
     const renderHeader = () => {
@@ -291,38 +315,10 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
       );
     };
     
-    // Determine column layout or default content style
-    const contentStyle = useMemo(() => {
-      const itemSpacing = config.layout?.itemSpacing || 0;
-      
-      // Default content style
-      const style: React.CSSProperties = {
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: `${itemSpacing}mm`
-      };
-      
-      // Add contentMaxWidth if available and no columns are defined
-      const contentMaxWidth = config.layout?.contentMaxWidth;
-      if (contentMaxWidth && !processedColumns.length) {
-        style.maxWidth = `${contentMaxWidth}mm`;
-        style.margin = '0 auto';
-      }
-      
-      // If columns are defined, use different layout
-      if (processedColumns && processedColumns.length > 0) {
-        style.flexDirection = 'row';
-        style.gap = `${processedColumns[0].gap || itemSpacing}mm`;
-      }
-      
-      return style;
-    }, [config.layout, processedColumns]);
-    
-    // Render column layout if columns are defined
+    // Render column layout if columns are defined - using our extracted function
     const renderContent = () => {
       // If no columns defined, return children directly
-      if (!processedColumns || processedColumns.length === 0) {
+      if (!processedColumns || processedColumns.length === 0 || !columnItems) {
         return (
           <div className="page-content" style={contentStyle}>
             {children}
@@ -330,44 +326,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
         );
       }
       
-      // If columns are defined, organize children based on columnIndex
-      const childrenArray = React.Children.toArray(children);
-      const columnCount = processedColumns.length;
-      
-      // Create arrays for each column
-      const columnItems: React.ReactNode[][] = Array(columnCount).fill(null).map(() => []);
-      
-      // Organize items with columnIndex specified
-      const remainingItems: React.ReactNode[] = [];
-      
-      childrenArray.forEach((item) => {
-        if (React.isValidElement(item) && typeof item.props.columnIndex === 'number') {
-          const colIndex = item.props.columnIndex;
-          // Only add to column if the index is valid
-          if (colIndex >= 0 && colIndex < columnCount) {
-            columnItems[colIndex].push(item);
-          } else {
-            // If column index is invalid, add to remaining items
-            remainingItems.push(item);
-          }
-        } else {
-          // Items without columnIndex are added to remaining items
-          remainingItems.push(item);
-        }
-      });
-      
-      // Distribute remaining items evenly across columns
-      if (remainingItems.length > 0) {
-        const itemsPerColumn = Math.ceil(remainingItems.length / columnCount);
-        
-        remainingItems.forEach((item, idx) => {
-          const targetColIndex = Math.floor(idx / itemsPerColumn);
-          // Make sure we don't exceed column count
-          const safeColIndex = Math.min(targetColIndex, columnCount - 1);
-          columnItems[safeColIndex].push(item);
-        });
-      }
-      
+      // If columns are defined, render columnized content
       return (
         <div className="page-content columns" style={contentStyle}>
           {processedColumns.map((column, idx) => {
@@ -388,6 +347,18 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
         </div>
       );
     };
+    
+    // Create memoized page context value to prevent unnecessary re-renders
+    const pageContextValue = useMemo(() => ({
+      scale, 
+      width: actualMaxWidth, 
+      height: pageHeight,
+      originalWidth: DIN_A4_WIDTH_MM,
+      originalHeight: DIN_A4_HEIGHT_MM,
+      pageNumber,
+      totalPages,
+      columns: processedColumns
+    }), [scale, actualMaxWidth, pageHeight, pageNumber, totalPages, processedColumns]);
     
     return (
       <div 
@@ -410,18 +381,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
             )}
             style={pageStyle}
           >
-            <PageContext.Provider 
-              value={{ 
-                scale, 
-                width: actualMaxWidth, 
-                height: pageHeight,
-                originalWidth: DIN_A4_WIDTH_MM,
-                originalHeight: DIN_A4_HEIGHT_MM,
-                pageNumber,
-                totalPages,
-                columns: processedColumns
-              }}
-            >
+            <PageContext.Provider value={pageContextValue}>
               {renderHeader()}
               {renderContent()}
               {renderFooter()}

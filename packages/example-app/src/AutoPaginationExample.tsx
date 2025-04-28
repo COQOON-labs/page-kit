@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { 
   Document, 
   PageKitConfigProvider, 
@@ -6,7 +5,7 @@ import {
   ParagraphItem, 
   ShapeItem,
   CalloutItem,
-  ColumnDefinition
+  ColumnDefinition,
 } from '../../page-kit-core/src';
 
 // Sample long text for testing
@@ -18,13 +17,45 @@ Cras lobortis pellentesque eros, nec tincidunt tellus tempus et. Maecenas volutp
 Nullam fermentum eleifend magna, eget elementum mauris consequat non. Proin id felis tortor. Morbi rhoncus, risus a consequat condimentum, purus augue varius orci, in sollicitudin diam diam id est. Aliquam a est dolor. Nulla sit amet viverra lorem, non ultrices nulla. Nulla ac cursus justo, ac feugiat libero. Etiam sagittis ligula ac libero dapibus, quis egestas nulla convallis. Ut nec nunc condimentum, posuere enim eu, hendrerit ipsum. Cras vestibulum ex a dictum placerat. Vivamus id dui sit amet mauris ultricies accumsan. Fusce eu varius elit, et mattis urna. Etiam accumsan ligula lectus, a scelerisque diam tincidunt non. Nulla aliquam vitae nibh sit amet scelerisque. Cras venenatis aliquam risus. Nam lobortis metus ac est rutrum, vel bibendum lorem mattis.
 
 Praesent euismod tincidunt diam, in suscipit justo viverra vel. Nunc in leo vel urna eleifend interdum. Cras gravida commodo elit eget blandit. Aenean malesuada mi sit amet erat maximus feugiat. Ut fringilla dui vitae placerat fringilla. Cras in commodo diam. Cras venenatis convallis orci, sed pellentesque felis dapibus ut. Pellentesque porttitor tortor eros, ut mollis tortor convallis et. Quisque iaculis massa vitae felis malesuada, eget convallis purus consectetur. Integer consectetur magna quis sem auctor, ac tempus justo volutpat. Sed sed lectus facilisis, viverra purus vel, laoreet libero. Cras faucibus neque ut felis interdum, dapibus elementum purus suscipit. Nulla eget porttitor ligula, ut suscipit nulla.
+
+Fusce bibendum, urna non tempus tristique, enim nisi iaculis risus, vel dictum nulla lorem vitae mauris. Suspendisse eu dignissim lorem. Maecenas ut vestibulum nisi. Pellentesque gravida facilisis neque, sed egestas lorem dignissim eu. Pellentesque posuere eros at feugiat cursus. Suspendisse consequat orci in nulla sagittis, id condimentum tellus vestibulum. Donec nec nulla dui. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Quisque euismod dui vel purus mattis, at blandit ex sodales.
+
+Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Ut feugiat et nulla quis blandit. Donec sed suscipit dui. Praesent gravida ante at nulla tempus, nec pretium velit lacinia. Vestibulum vitae ultrices nibh. Duis ut rutrum tellus. Etiam faucibus, nunc facilisis consectetur aliquet, tellus metus interdum urna, vel laoreet est velit nec quam. Curabitur dictum leo sit amet tellus facilisis, a sodales ex efficitur.
+
+Aliquam ante magna, lobortis nec sapien in, facilisis laoreet justo. Integer at tellus convallis, gravida dui eu, fermentum tellus. Integer hendrerit, odio sed accumsan consectetur, quam sapien vulputate mauris, in elementum arcu libero vitae nulla. Sed posuere pulvinar justo, vel fermentum libero aliquet vitae. Proin eu elit porta, malesuada sapien nec, commodo orci. Vivamus blandit pharetra tincidunt. Donec consequat, nulla et vestibulum sagittis, sapien sapien ullamcorper libero, id iaculis nulla turpis at odio.
+
+Curabitur molestie, ex ac faucibus ornare, mi ligula pulvinar ex, in luctus velit risus a ex. Vestibulum pretium vel nulla quis laoreet. Donec vel urna euismod, porttitor nisi vitae, fermentum velit. Cras rhoncus viverra ex, nec pharetra arcu molestie quis. Aliquam dignissim viverra lectus, eu congue diam bibendum sit amet. Integer vitae sapien auctor, sagittis dui ut, malesuada tortor. Nam id justo quis nulla tempus vulputate eget nec metus.
+
+Maecenas eu sapien ac urna ullamcorper tincidunt. Proin elit nulla, elementum vitae dictum eu, facilisis vel leo. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Cras vitae dui dictum, dignissim eros eget, consequat enim. Donec vel libero at mi semper accumsan. Phasellus semper, mi eget luctus mollis, sapien lorem fringilla massa, in blandit est ipsum at tellus. Cras eu nisi dapibus, molestie nisl eu, tincidunt tellus. Ut id tempor lectus. Nunc facilisis quam urna, eu consequat augue suscipit vel. Suspendisse potenti.
+
+Ut ac odio ac augue malesuada suscipit. Praesent quis augue ac ipsum molestie pulvinar. Nulla accumsan, mi nec commodo placerat, neque magna convallis ante, sed faucibus turpis urna in justo. Vestibulum et erat lobortis, ornare erat at, sollicitudin odio. Aliquam erat volutpat. Mauris sed mauris rutrum, porta arcu at, luctus est. Vivamus porta mollis purus, vel consectetur turpis tristique id. Donec et nulla eget ipsum ultricies ultricies ut eu orci. Cras porta neque a elit porttitor, a elementum metus ornare. Fusce molestie magna in diam rutrum, non commodo nulla dictum. Morbi mollis non augue at ornare. Integer placerat sit amet tellus quis dictum.
+
+Vivamus id tincidunt dui. Proin a justo neque. Nullam interdum quam nibh, nec tincidunt dolor tincidunt vitae. In condimentum libero vitae est viverra, vel maximus dui feugiat. Nunc a felis a velit auctor dapibus. Cras sed vulputate turpis. Cras at venenatis ligula, eget mattis tellus. Praesent euismod nisi eget libero consectetur maximus. Nam malesuada justo sit amet odio dapibus, in faucibus arcu mattis. Quisque venenatis leo a ex porttitor, eu pulvinar mi lacinia. Suspendisse ut metus ex. Donec eu pharetra odio, vel pellentesque tellus. Ut posuere diam odio, venenatis porttitor nisi dictum quis. Aenean sed auctor risus. Maecenas et felis in tortor faucibus finibus in a nisi.
 `;
 
-// Error component to simulate failures
-const ErrorComponent = () => {
-  throw new Error('This is a test error!');
-  return null;
-};
+// Additional data for tables and examples
+const featureList = [
+  'Automatic content flow across multiple pages',
+  'Precise positioning with dimensional controls',
+  'Flexible column layouts with independent width settings',
+  'Consistent page numbering and headers/footers',
+  'Optimized rendering with memoization',
+  'Theme support with customizable styling options',
+  'Type-safe component interfaces',
+  'Responsive scaling for various page sizes',
+  'Built-in validation for dimension values',
+  'Comprehensive item component library',
+  'Support for page breaks before/after specific items',
+  'Customizable margins and padding for layout control',
+  'Dynamic header and footer content',
+  'Automatic calculation of content height',
+  'Overflow detection and handling',
+  'Support for multi-page printing',
+  'Nested layout capabilities',
+  'Integration with React ecosystem',
+  'Responsive behavior for different screen sizes',
+  'Performance optimizations for large documents'
+];
 
 // Custom configuration for page kit
 const pageKitConfig = {
@@ -49,36 +80,25 @@ const twoColumnLayout: ColumnDefinition[] = [
   { width: 52, backgroundColor: '#f8f9fa' }
 ];
 
+const threeColumnLayout: ColumnDefinition[] = [
+  { width: 30, backgroundColor: '#f0f9ff' },
+  { width: 40 },
+  { width: 30, backgroundColor: '#f0f9ff' }
+];
+
+const fourColumnLayout: ColumnDefinition[] = [
+  { width: 25, backgroundColor: '#f0fff0' },
+  { width: 25 },
+  { width: 25 },
+  { width: 25, backgroundColor: '#fff0f0' }
+];
+
 export default function AutoPaginationExample() {
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
-  // Error handler for document component
-  const handleError = (error: Error) => {
-    console.log('Document error caught:', error.message);
-    setErrorMessage(error.message);
-  };
-  
   return (
     <div className="min-h-screen p-4 bg-gray-100">
       <div className="max-w-screen-xl mx-auto">
         <h1 className="mb-4 text-2xl font-bold">Automatic Pagination Example</h1>
         <p className="mb-4">This demonstrates the automatic pagination feature based on item heights.</p>
-        
-        <div className="flex gap-4 mb-4">
-          <button 
-            onClick={() => setShowError(!showError)}
-            className="px-4 py-2 text-white transition-colors bg-red-500 rounded hover:bg-red-600"
-          >
-            {showError ? 'Hide Error Component' : 'Show Error Component'}
-          </button>
-          
-          {errorMessage && (
-            <div className="p-3 text-yellow-800 bg-yellow-100 border border-yellow-300 rounded">
-              Error caught: {errorMessage}
-            </div>
-          )}
-        </div>
         
         <PageKitConfigProvider config={pageKitConfig}>
           <Document 
@@ -94,11 +114,9 @@ export default function AutoPaginationExample() {
               </div>
             }}
             className="flex flex-col items-center gap-8"
-            onError={handleError}
           >
             {/* Main heading */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 15 }}
               fontSize={24}
               color="#1a56db"
             >
@@ -106,22 +124,13 @@ export default function AutoPaginationExample() {
             </HeadingItem>
             
             <ShapeItem
-              dimensions={{ width: 170, height: 1 }}
               shapeType="line"
               borderColor="#333"
               borderWidth={0.5}
             />
             
-            {/* Error component (conditionally rendered) */}
-            {showError && (
-              <ParagraphItem dimensions={{ width: 170, height: 40 }}>
-                <ErrorComponent />
-              </ParagraphItem>
-            )}
-            
             {/* Introduction */}
             <ParagraphItem
-              dimensions={{ width: 170, height: 35 }}
               fontSize={12}
             >
               This document demonstrates the automatic page flow functionality. 
@@ -129,9 +138,7 @@ export default function AutoPaginationExample() {
               and the remaining space on each page.
             </ParagraphItem>
             
-            {/* First callout - should be on page 1 */}
             <CalloutItem
-              dimensions={{ width: 170, height: 35 }}
               variant="info"
               calloutTitle="Automatic Pagination"
             >
@@ -139,24 +146,58 @@ export default function AutoPaginationExample() {
               The system automatically calculates where each item should be placed based on its dimensions.
             </CalloutItem>
             
-            {/* First paragraph of lorem ipsum - might overflow to page 2 */}
+            {/* First paragraph of lorem ipsum - full page 1 */}
             <ParagraphItem
-              dimensions={{ width: 170, height: 60 }}
               fontSize={11}
               lineHeight={1.4}
             >
               {loremIpsum.split('\n\n')[0]}
             </ParagraphItem>
+
+            {/* First paragraph - page 1 */}
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              {loremIpsum.split('\n\n')[1]}
+            </ParagraphItem>
+
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              When working with multi-page documents, it's important to understand how page breaks
+              are calculated. The system tracks the available space on each page and automatically
+              moves content to the next page when needed. This gives you the flexibility to focus on
+              your content without worrying about manual page layout.
+              
+              The automatic pagination system also respects item properties like page breaks before/after,
+              ensuring your content flows exactly as intended while maintaining good document structure.
+            </ParagraphItem>
+
+            {/* Third paragraph - page 1 */}
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              {loremIpsum.split('\n\n')[2]}
+            </ParagraphItem>
             
-            {/* Column layout marker - this will apply columns to the next page */}
-            <ParagraphItem 
-              dimensions={{ width: 0, height: 0 }}
+            {/* Fourth paragraph - now page 2 */}
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              {loremIpsum.split('\n\n')[3]}
+            </ParagraphItem>
+            
+            {/* Column layout marker - this will apply columns to page 4 */}
+            {/* <ParagraphItem 
               columns={twoColumnLayout}
-            />
+            /> */}
             
-            {/* Second callout - will be on page 2 in the first column */}
-            <CalloutItem
-              dimensions={{ width: 80, height: 45 }}
+            {/* Second callout - will be on page 4 in the first column */}
+            {/* <CalloutItem
               variant="tip"
               calloutTitle="Design Tip"
               columnIndex={0}
@@ -164,56 +205,168 @@ export default function AutoPaginationExample() {
               When working with automatic pagination, you still need to provide appropriate 
               height values for your items. This allows the system to accurately calculate 
               page breaks.
-            </CalloutItem>
+            </CalloutItem> */}
             
             {/* Second paragraph of lorem ipsum - in the second column */}
-            <ParagraphItem
-              dimensions={{ width: 80, height: 80 }}
+            {/* <ParagraphItem
               fontSize={11}
               lineHeight={1.4}
               columnIndex={1}
             >
-              {loremIpsum.split('\n\n')[1]}
-            </ParagraphItem>
+              {loremIpsum.split('\n\n')[4]}
+            </ParagraphItem> */}
+
+            {/* Additional callout in first column */}
+            {/* <CalloutItem
+              variant="warning"
+              calloutTitle="Important Note"
+              columnIndex={0}
+            >
+              When working with complex layouts, be mindful of your content distribution.
+              Balancing content across columns creates a more visually appealing document
+              and improves readability for your audience.
+            </CalloutItem> */}
+
+            {/* Additional paragraph in second column */}
+            {/* <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+              columnIndex={1}
+            >
+              {loremIpsum.split('\n\n')[5]}
+              
+              This additional content demonstrates how the pagination system handles
+              columns of different heights. When one column fills up, content continues
+              to flow in the next column or on the next page as needed.
+            </ParagraphItem> */}
             
+            {/* Extra content in first column that should overflow to next page */}
+            {/* <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+              columnIndex={0}
+            >
+              {loremIpsum.split('\n\n')[6]}
+              
+              Notice how this content is much longer than the content in the other column.
+              The pagination system should detect that this column's content exceeds the
+              available space on the current page and move the excess content to the next page.
+              
+              This demonstrates how individual columns are tracked independently, and content
+              flows properly when a column overflows, maintaining the column structure across
+              multiple pages automatically.
+              
+              {loremIpsum.split('\n\n')[7].substring(0, 300)}
+            </ParagraphItem> */}
+            
+            {/* Extra content in second column */}
+            {/* <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+              columnIndex={1}
+            >
+              {loremIpsum.split('\n\n')[7].substring(300)}
+              
+              This content should also flow to the next page when needed, demonstrating
+              how both columns can overflow independently and still maintain proper layout
+              across page boundaries.
+              
+              {loremIpsum.split('\n\n')[8].substring(0, 200)}
+            </ParagraphItem> */}
+
             {/* Reset to single column layout */}
-            <ParagraphItem
-              dimensions={{ width: 0, height: 0 }}
+            {/* <ParagraphItem
               columns={[{ width: 100 }]}
-            />
+            /> */}
             
             {/* Heading for column demo */}
-            <HeadingItem 
-              dimensions={{ width: 170, height: 15 }}
+            {/* <HeadingItem 
               fontSize={16}
               color="#333"
             >
               Column Layout Demo
-            </HeadingItem>
+            </HeadingItem> */}
             
             {/* Explanation of the column layout */}
-            <ParagraphItem
-              dimensions={{ width: 170, height: 30 }}
+            {/* <ParagraphItem
               fontSize={11}
             >
-              The previous page demonstrated a two-column layout. Items can be assigned to specific columns
+              The previous pages demonstrated a two-column layout. Items can be assigned to specific columns
               using the columnIndex property. The system handles pagination with columns automatically.
               Columns can have different widths and even background colors.
-            </ParagraphItem>
+            </ParagraphItem> */}
+
+            {/* Insert a large paragraph to fill page */}
+            {/* <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              {loremIpsum.split('\n\n')[8]}
+              
+              The pagination system automatically calculates page breaks based on the content height.
+              When an item's height plus the current page position exceeds the available space, the
+              item is automatically moved to the next page. This ensures that all content is properly
+              displayed without manual positioning.
+              
+              Each page can have its own layout configuration, including column definitions, margins,
+              and spacing. This flexibility allows you to create complex documents with varying layouts
+              throughout, while still maintaining automatic pagination.
+            </ParagraphItem> */}
+
+            {/* Insert a sample product inventory */}
+            {/* <HeadingItem
+              fontSize={14}
+              color="#444"
+            >
+              Sample Product Inventory
+            </HeadingItem> */}
+
+            {/* <ParagraphItem
+              fontSize={10}
+            >
+              This is a placeholder for what would be a product inventory table.
+              In a real application, you would use a proper table component here.
+              
+              Widget A (Tools) - $24.99 - 125 in stock
+              Gizmo B (Electronics) - $89.95 - 42 in stock
+              Doohickey C (Accessories) - $12.50 - 356 in stock
+              Thingamajig D (Gadgets) - $149.99 - 18 in stock
+              Whatchamacallit E (Misc) - $35.75 - 73 in stock
+            </ParagraphItem> */}
+
+            {/* <ParagraphItem
+              fontSize={10}
+            >
+              This text demonstrates how fixed-height elements are paginated when they
+              don't fit on the current page. The pagination system maintains the integrity of such
+              elements by moving them entirely to the next page when necessary.
+            </ParagraphItem> */}
             
-            {/* Three-column layout for this page */}
-            <ParagraphItem
-              dimensions={{ width: 0, height: 0 }}
-              columns={[
-                { width: 30, backgroundColor: '#f0f9ff' },
-                { width: 40 },
-                { width: 30, backgroundColor: '#f0f9ff' }
-              ]}
-            />
+            {/* Large paragraph to fill page */}
+            {/* <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              {loremIpsum.split('\n\n')[9]}
+              
+              The automatic pagination system in Page Kit handles more than just text content.
+              It can paginate various types of content, including tables, images, shapes, and
+              custom components. Each component provides its height, allowing the pagination
+              system to accurately calculate page breaks.
+              
+              This approach gives you the flexibility to create sophisticated documents with
+              diverse content types while still benefiting from automatic pagination and layout.
+              
+              {loremIpsum.split('\n\n')[0].substring(0, 200)}
+            </ParagraphItem> */}
+            
+            {/* Three-column layout for the next page */}
+            {/* <ParagraphItem
+              columns={threeColumnLayout}
+            /> */}
             
             {/* Content for first column */}
-            <ParagraphItem
-              dimensions={{ width: 50, height: 50 }}
+            {/* <ParagraphItem
               fontSize={10}
               lineHeight={1.3}
               columnIndex={0}
@@ -222,9 +375,7 @@ export default function AutoPaginationExample() {
               widths and proper spacing. The left and right columns have a subtle background color.
             </ParagraphItem>
             
-            {/* Content for second column */}
             <CalloutItem
-              dimensions={{ width: 60, height: 50 }}
               variant="warning"
               calloutTitle="Page Layout Considerations"
               columnIndex={1}
@@ -233,9 +384,7 @@ export default function AutoPaginationExample() {
               specific page they are defined on.
             </CalloutItem>
             
-            {/* Content for third column */}
             <ParagraphItem
-              dimensions={{ width: 50, height: 50 }}
               fontSize={10}
               lineHeight={1.3}
               columnIndex={2}
@@ -243,31 +392,335 @@ export default function AutoPaginationExample() {
               This text appears in the third column. You can specify different column widths to create 
               various layouts. The sum of all column widths should equal 100%.
             </ParagraphItem>
-            
-            {/* Reset to single column */}
+
             <ParagraphItem
-              dimensions={{ width: 0, height: 0 }}
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={0}
+            >
+              {loremIpsum.split('\n\n')[0].substring(0, 500)}
+              
+              This content is deliberately longer than the page height to demonstrate how
+              column content properly flows to the next page when it exceeds the available space.
+              
+              Notice how the pagination system maintains the column structure across pages,
+              ensuring that content in one column doesn't affect the layout of other columns.
+              
+              {loremIpsum.split('\n\n')[1].substring(0, 300)}
+            </ParagraphItem>
+
+            <ParagraphItem
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={1}
+            >
+              {loremIpsum.split('\n\n')[2].substring(0, 600)}
+            </ParagraphItem>
+
+            <ParagraphItem
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={2}
+            >
+              {loremIpsum.split('\n\n')[3].substring(0, 500)}
+              
+              This column has less content than the first column but more than the second.
+              This demonstrates how independent column tracking works across pages.
+            </ParagraphItem>
+            
+            <ParagraphItem
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={0}
+            >
+              {loremIpsum.split('\n\n')[4].substring(0, 400)}
+              
+              This additional content for the first column should force a third page of
+              the three-column layout. By adding significantly more content to this column,
+              we can see how the pagination system handles multiple pages of columnar content.
+              
+              The other columns may have already ended their content flow, but this column
+              continues to the next page, maintaining its position and width.
+              
+              {loremIpsum.split('\n\n')[5].substring(0, 400)}
+              
+              The pagination system should properly account for this extended content,
+              demonstrating that columns can span multiple pages when needed.
+            </ParagraphItem>
+            
+            <ParagraphItem
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={1}
+            >
+              {loremIpsum.split('\n\n')[6].substring(0, 300)}
+              
+              This additional content for the second column ensures that it also flows
+              to subsequent pages, demonstrating how multiple columns can continue across
+              page boundaries simultaneously.
+              
+              The pagination system should properly maintain the column structure and
+              relative positioning across all pages, regardless of how much content is
+              in each column.
+              
+              {loremIpsum.split('\n\n')[7].substring(0, 300)}
+            </ParagraphItem>
+
+            <ParagraphItem
+              fontSize={10}
+              lineHeight={1.3}
+              columnIndex={2}
+            >
+              {loremIpsum.split('\n\n')[8].substring(0, 350)}
+              
+              With all three columns now containing significant amounts of content that
+              exceeds a single page, we can fully demonstrate the pagination system's
+              ability to handle complex column layouts across multiple pages.
+              
+              Each column maintains its relative position and width on subsequent pages,
+              creating a consistent reading experience throughout the document.
+              
+              {loremIpsum.split('\n\n')[9].substring(0, 350)}
+            </ParagraphItem>
+            
+            <ParagraphItem
               columns={[{ width: 100 }]}
             />
             
-            {/* Final heading - will be on the last page */}
             <HeadingItem 
-              dimensions={{ width: 170, height: 15 }}
-              fontSize={18}
+              fontSize={16}
               color="#333"
             >
-              Conclusion
+              Key Features
             </HeadingItem>
             
-            {/* Final paragraph */}
+            {featureList.map((feature, index) => (
+              <ParagraphItem
+                key={index}
+                fontSize={11}
+                lineHeight={1.3}
+              >
+                • {feature}
+              </ParagraphItem>
+            ))}
+
             <ParagraphItem
-              dimensions={{ width: 170, height: 30 }}
-              fontSize={12}
+              fontSize={11}
+              lineHeight={1.4}
             >
-              As demonstrated, the automatic pagination system distributes content
-              intelligently across multiple pages, maintaining proper layout and spacing.
-              Column layouts provide even more flexibility for creating complex documents.
+              {loremIpsum.split('\n\n')[0]}
+              
+              The feature list above demonstrates how lists and other content types are
+              automatically paginated when they exceed the available space on a page.
+              Each list item is treated as a separate component with its own height,
+              allowing for precise pagination control.
+              
+              This approach ensures that lists are properly broken across pages, with
+              each item maintaining its formatting and indentation.
             </ParagraphItem>
+
+            <ParagraphItem
+              columns={fourColumnLayout}
+            />
+
+            <HeadingItem 
+              fontSize={14}
+              color="#333"
+              columnIndex={0}
+            >
+              Four-Column Layout Example
+            </HeadingItem>
+
+            <ParagraphItem
+              fontSize={9}
+              lineHeight={1.3}
+              columnIndex={0}
+            >
+              {loremIpsum.split('\n\n')[0].substring(0, 300)}
+              
+              This first column contains much more content than the others, deliberately
+              exceeding the page height to demonstrate column overflow behavior.
+              
+              When a column's content exceeds the available space on a page, the pagination
+              system should move the excess content to the next page while maintaining the
+              column structure.
+              
+              Notice how this column continues to the next page before the other columns
+              are filled, showing how independent column tracking works.
+              
+              {loremIpsum.split('\n\n')[1].substring(0, 300)}
+              
+              Each column's content flow is tracked separately, allowing for proper pagination
+              regardless of how content is distributed across columns.
+              
+              This is particularly useful for complex layouts where columns may contain
+              different types and amounts of content.
+              
+              {loremIpsum.split('\n\n')[2].substring(0, 300)}
+            </ParagraphItem>
+
+            <ParagraphItem
+              fontSize={9}
+              lineHeight={1.3}
+              columnIndex={1}
+            >
+              {loremIpsum.split('\n\n')[3].substring(0, 300)}
+              
+              This second column has a moderate amount of content, less than the first
+              column but still enough to demonstrate pagination behavior.
+              
+              As the first column overflows to the next page, this column's content should
+              remain in its proper position relative to the other columns.
+              
+              {loremIpsum.split('\n\n')[4].substring(0, 100)}
+            </ParagraphItem>
+
+            <ParagraphItem
+              fontSize={9}
+              lineHeight={1.3}
+              columnIndex={2}
+            >
+              {loremIpsum.split('\n\n')[5].substring(0, 300)}
+              
+              The third column contains even less content than the second, creating
+              an unbalanced layout that challenges the pagination system.
+              
+              Despite this imbalance, the system should maintain proper column
+              structure across pages.
+            </ParagraphItem>
+
+            <CalloutItem
+              variant="tip"
+              calloutTitle="Advanced Layout"
+              columnIndex={3}
+            >
+              This four-column layout demonstrates the flexibility of the column system.
+              You can create complex layouts for data-dense pages, catalogs, or multi-section
+              reports. Each column can have its own background color and content.
+              
+              The pagination system ensures content flows correctly across columns and pages,
+              maintaining the integrity of your document structure.
+            </CalloutItem>
+            
+            <ParagraphItem
+              fontSize={9}
+              lineHeight={1.3}
+              columnIndex={1}
+            >
+              {loremIpsum.split('\n\n')[6].substring(0, 400)}
+              
+              This additional content for the second column should overflow to the next
+              page, joining the content from the first column.
+              
+              When multiple columns overflow, they should all maintain their relative
+              positions on subsequent pages, preserving the readability and structure
+              of the document.
+              
+              {loremIpsum.split('\n\n')[7].substring(0, 300)}
+            </ParagraphItem>
+            
+            <ParagraphItem
+              fontSize={9}
+              lineHeight={1.3}
+              columnIndex={2}
+            >
+              {loremIpsum.split('\n\n')[8].substring(0, 400)}
+              
+              Now the third column also has enough content to overflow to the next page,
+              creating a situation where three out of four columns continue to the next page.
+              
+              This tests the pagination system's ability to handle different overflow
+              scenarios within the same multi-column layout.
+              
+              {loremIpsum.split('\n\n')[9].substring(0, 350)}
+            </ParagraphItem>
+            
+            <ParagraphItem
+              fontSize={9}
+              lineHeight={1.3}
+              columnIndex={3}
+            >
+              {loremIpsum.split('\n\n')[0].substring(0, 500)}
+              
+              Finally, the fourth column also overflows to the next page, creating a
+              situation where all columns continue across page boundaries.
+              
+              This comprehensive test demonstrates the pagination system's robustness
+              in handling complex multi-column layouts with varying content lengths.
+              
+              {loremIpsum.split('\n\n')[1].substring(300, 800)}
+            </ParagraphItem>
+            
+            <ParagraphItem
+              columns={[{ width: 100 }]}
+            />
+            
+            <HeadingItem 
+              fontSize={16}
+              color="#333"
+            >
+              Final Thoughts
+            </HeadingItem>
+            
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              Automatic pagination combined with column layouts offers powerful document creation capabilities.
+              You can create complex multi-page, multi-column documents with consistent layouts and proper
+              content flow with minimal manual positioning.
+              
+              Throughout this example, we've demonstrated several key aspects of the pagination system:
+              
+              • Basic single-column pagination with content flowing across pages
+              • Two-column layouts with independent column content
+              • Three-column layouts with background colors and varying content lengths
+              • Four-column layouts with column overflow handling
+              • Complex pagination scenarios with multiple columns overflowing simultaneously
+              
+              These demonstrations show the flexibility and robustness of the automatic pagination
+              system in handling a wide range of document layouts and content types.
+            </ParagraphItem>
+            
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              This example has demonstrated various layout configurations across multiple pages:
+              
+              • Single-column layouts for standard document flow
+              • Two-column layouts for side-by-side content presentation
+              • Three-column layouts for more complex information distribution
+              • Four-column layouts for data-dense pages and catalogs
+              
+              The pagination system handles all these layouts elegantly, ensuring your content
+              flows naturally across pages while maintaining the defined structure.
+              
+              Each column's content flow is tracked independently, allowing columns to overflow
+              to subsequent pages when needed. This independent tracking ensures that content
+              is always presented correctly, regardless of how it's distributed across columns.
+              
+              The system also properly maintains column widths, background colors, and relative
+              positioning across page boundaries, creating a consistent reading experience throughout
+              the document.
+            </ParagraphItem>
+
+            <CalloutItem
+              variant="note"
+              calloutTitle="Next Steps"
+            >
+              Try experimenting with different column configurations, content types, and page settings
+              to see how the automatic pagination system adapts to your specific document needs.
+              The Page Kit library provides a flexible foundation for creating sophisticated multi-page
+              documents with minimal effort.
+              
+              You can also explore advanced features like conditional page breaks, dynamic content
+              generation, and integration with data sources to create even more powerful document
+              generation workflows.
+              
+              For more information and documentation, refer to the Page Kit documentation or explore
+              the example applications provided with the library.
+            </CalloutItem> */}
           </Document>
         </PageKitConfigProvider>
         
@@ -275,11 +728,11 @@ export default function AutoPaginationExample() {
           <h2 className="mb-2 text-xl font-semibold">Improvements Made</h2>
           <ul className="pl-5 mt-2 space-y-1 list-disc">
             <li><strong>Automatic pagination</strong> - Content flows naturally across pages</li>
-            <li><strong>Error handling</strong> - Boundary catches and displays errors gracefully</li>
+            <li><strong>Column-aware pagination</strong> - Each column tracks its content height independently</li>
             <li><strong>Memoized calculations</strong> - Performance optimized with React.memo and useMemo</li>
             <li><strong>Type-safe props</strong> - DOM props are properly filtered and typed</li>
             <li><strong>Column layouts</strong> - Support for multi-column pages with individual item placement</li>
-            <li><strong>Validation</strong> - Input validation for dimension values</li>
+            <li><strong>Validation</strong> - Input validation for dimension values and column definitions</li>
           </ul>
         </div>
       </div>

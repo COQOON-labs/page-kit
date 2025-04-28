@@ -76,6 +76,8 @@ A key feature of Page Kit is its DIN A4 document editing capabilities:
 - **Automatic Scaling**: All content scales automatically when the viewport size changes
 - **Millimeter-Based Positioning**: Position items on the page using real-world millimeter measurements
 - **Various Page Items**: Add text, images, and shapes to your documents
+- **Column Layout System**: Create multi-column layouts with customizable widths and styling
+- **Automatic Pagination**: Intelligently distribute content across multiple pages
 
 ## Usage
 
@@ -171,9 +173,7 @@ function DocumentExample() {
   return (
     <Page maxWidth={800} containerWidth={100} shadow={true}>
       {/* Header with title */}
-      <HeadingItem dimensions={{ width: 170, height: 15 }} fontSize={18}>
-        My DIN A4 Document
-      </HeadingItem>
+      <HeadingItem fontSize={18}>My DIN A4 Document</HeadingItem>
 
       {/* Line separator */}
       <ShapeItem
@@ -184,7 +184,7 @@ function DocumentExample() {
       />
 
       {/* Main content */}
-      <ParagraphItem dimensions={{ width: 170, height: 40 }} fontSize={12}>
+      <ParagraphItem fontSize={12}>
         This document maintains the DIN A4 aspect ratio and scales automatically
         when the viewport size changes. All content is positioned precisely in
         millimeters.
@@ -226,6 +226,31 @@ Page Kit provides various specialized components for document creation:
 - `ImageItem`: For displaying images with various sizing options
 - `ShapeItem`: For displaying geometric shapes (rectangle, ellipse, line)
 - `CalloutItem`: For highlighting important information with various styles
+
+#### Layout Components
+
+- **Column Layouts**: Create responsive multi-column designs for documents
+
+```jsx
+// Document with column layout applied to all pages
+<Document
+  columns={[
+    { width: 40 },
+    { width: 60 }
+  ]}
+  pageProps={{...}}
+>
+  {/* Content for the first column */}
+  <ParagraphItem columnIndex={0}>
+    This content appears in the left column.
+  </ParagraphItem>
+
+  {/* Content for the second column */}
+  <ParagraphItem columnIndex={1}>
+    This content appears in the right column.
+  </ParagraphItem>
+</Document>
+```
 
 #### Callout Component
 

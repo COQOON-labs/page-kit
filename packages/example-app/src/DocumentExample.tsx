@@ -18,18 +18,20 @@ const ErrorComponent = () => {
   return null;
 };
 
-// Component for handling text that might overflow between pages
+// Component to handle text that spans multiple pages
 function MultiPageText({
   text,
   maxHeight,
   fontSize = 11,
   lineHeight = 1.5,
+  color,
   ...props
 }: {
   text: string;
   maxHeight: number;
   fontSize?: number;
   lineHeight?: number;
+  color?: string;
   dimensions?: { width: number; height: number };
   [key: string]: unknown;
 }) {
@@ -63,10 +65,9 @@ function MultiPageText({
     <>
       {/* Text for first page */}
       <ParagraphItem
-        dimensions={props.dimensions}
         fontSize={fontSize}
         lineHeight={lineHeight}
-        {...props}
+        color={color}
       >
         {page1Text}
       </ParagraphItem>
@@ -74,11 +75,10 @@ function MultiPageText({
       {/* Text continuation for second page - positioned at top of the second page */}
       {page2Text && (
         <ParagraphItem
-          dimensions={props.dimensions}
           fontSize={fontSize}
           lineHeight={lineHeight}
+          color={color}
           className="page-2-content"
-          {...props}
         >
           {page2Text}
         </ParagraphItem>
@@ -161,7 +161,6 @@ export default function DocumentExample() {
             >
               {/* Header with logo and title */}
               <HeadingItem 
-                dimensions={{ width: 170, height: 15 }}
                 fontSize={18}
                 color="#333"
               >
@@ -177,7 +176,6 @@ export default function DocumentExample() {
               
               {/* Main heading */}
               <HeadingItem 
-                dimensions={{ width: 170, height: 20 }}
                 fontSize={24}
                 color="#1a56db"
               >
@@ -186,14 +184,13 @@ export default function DocumentExample() {
               
               {/* Error component (conditionally rendered) */}
               {showError && (
-                <ParagraphItem dimensions={{ width: 170, height: 40 }}>
+                <ParagraphItem>
                   <ErrorComponent />
                 </ParagraphItem>
               )}
               
               {/* Document info */}
               <ParagraphItem
-                dimensions={{ width: 170, height: 40 }}
                 fontSize={12}
               >
                 This is a demonstration of a DIN A4 page that maintains its aspect ratio when resized.
@@ -223,7 +220,6 @@ export default function DocumentExample() {
                   
                   {/* Caption */}
                   <ParagraphItem
-                    dimensions={{ width: 80, height: 10 }}
                     fontSize={10}
                     textAlign="center"
                     color="#666"
@@ -234,7 +230,6 @@ export default function DocumentExample() {
                 
                 {/* Lorem ipsum text */}
                 <ParagraphItem
-                  dimensions={{ width: 80, height: 75 }}
                   fontSize={11}
                   lineHeight={1.4}
                 >
@@ -247,7 +242,6 @@ export default function DocumentExample() {
               
               {/* Heading for shapes section */}
               <HeadingItem 
-                dimensions={{ width: 170, height: 15 }}
                 fontSize={16}
                 color="#333"
               >
@@ -267,7 +261,6 @@ export default function DocumentExample() {
                     className="flex-shrink-0"
                   />
                   <ParagraphItem
-                    dimensions={{ width: 80, height: 20 }}
                     fontSize={12}
                   >
                     Rectangle shape with border and background color
@@ -285,7 +278,6 @@ export default function DocumentExample() {
                     className="flex-shrink-0"
                   />
                   <ParagraphItem
-                    dimensions={{ width: 80, height: 20 }}
                     fontSize={12}
                   >
                     Ellipse shape with border and background color
@@ -303,7 +295,6 @@ export default function DocumentExample() {
                     />
                   </div>
                   <ParagraphItem
-                    dimensions={{ width: 80, height: 20 }}
                     fontSize={12}
                   >
                     Horizontal line with custom width and color
@@ -315,7 +306,6 @@ export default function DocumentExample() {
               <MultiPageText
                 text={loremIpsum}
                 maxHeight={25} // Available height on first page in mm
-                dimensions={{ width: 170, height: 25 }}
                 fontSize={10}
                 lineHeight={1.4}
                 color="#333"
@@ -335,7 +325,6 @@ export default function DocumentExample() {
               
               {/* Page number */}
               <ParagraphItem
-                dimensions={{ width: 10, height: 10 }}
                 fontSize={9}
                 textAlign="right"
                 color="#999"

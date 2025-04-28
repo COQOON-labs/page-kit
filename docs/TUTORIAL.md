@@ -18,6 +18,12 @@ This tutorial will guide you through using Page Kit to create professional docum
   - [Layout and Positioning](#layout-and-positioning)
     - [Using Dimensions](#using-dimensions)
     - [Natural Flow Layout](#natural-flow-layout)
+    - [Column Layouts](#column-layouts)
+      - [Document-Level Columns](#document-level-columns)
+      - [Page-Level Columns](#page-level-columns)
+      - [Column Layout Tips](#column-layout-tips)
+      - [Column-Aware Pagination](#column-aware-pagination)
+      - [Key Pagination Features](#key-pagination-features)
   - [Theming and Configuration](#theming-and-configuration)
   - [Creating Custom Components](#creating-custom-components)
   - [Advanced Techniques](#advanced-techniques)
@@ -62,17 +68,13 @@ function MyDocument() {
   return (
     <PageKitConfigProvider>
       <Page maxWidth={800} containerWidth={100} shadow={true}>
-        <HeadingItem
-          dimensions={{ width: 170, height: 20 }}
-          fontSize={24}
-          color="#1a56db"
-        >
+        <HeadingItem fontSize={24} color="#1a56db">
           My First Document
         </HeadingItem>
 
-        <ParagraphItem dimensions={{ width: 170, height: 40 }} fontSize={12}>
+        <ParagraphItem fontSize={12}>
           This is a DIN A4 document that maintains its proportions when resized.
-          All content is positioned using the dimensions prop.
+          All content flows naturally within the document.
         </ParagraphItem>
       </Page>
     </PageKitConfigProvider>
@@ -91,13 +93,7 @@ Page Kit provides several specialized components for document creation.
 Used for document titles and section headings:
 
 ```tsx
-<HeadingItem
-  dimensions={{ width: 170, height: 20 }}
-  fontSize={24}
-  fontWeight="bold"
-  color="#1a56db"
-  textAlign="center"
->
+<HeadingItem fontSize={24} fontWeight="bold" color="#1a56db" textAlign="center">
   Document Title
 </HeadingItem>
 ```
@@ -107,12 +103,7 @@ Used for document titles and section headings:
 Used for regular text content:
 
 ```tsx
-<ParagraphItem
-  dimensions={{ width: 170, height: 40 }}
-  fontSize={12}
-  lineHeight={1.5}
-  color="#333"
->
+<ParagraphItem fontSize={12} lineHeight={1.5} color="#333">
   This is a paragraph of text that can contain multiple lines. Line height and
   other text properties can be configured.
 </ParagraphItem>
@@ -235,13 +226,15 @@ You can customize callouts with your own colors:
 
 ### Using Dimensions
 
-All Page Kit components use the `dimensions` prop for sizing and positioning:
+Image and shape components use the `dimensions` prop for sizing and positioning:
 
 ```tsx
 dimensions={{ width: 100, height: 50 }}
 ```
 
 Width and height are specified in millimeters (mm) for consistency with real-world document measurements. Page Kit handles conversion to appropriate screen units.
+
+Text components like HeadingItem and ParagraphItem don't use the dimensions prop - they flow naturally within the document, adapting to their content and container width.
 
 ### Natural Flow Layout
 
@@ -272,6 +265,224 @@ For a more natural document flow, you can use flex containers:
   </ParagraphItem>
 </div>
 ```
+
+### Column Layouts
+
+Page Kit supports flexible column layouts to organize content in a structured, multi-column format.
+
+#### Document-Level Columns
+
+Apply columns across an entire document:
+
+```tsx
+import {
+  Document,
+  HeadingItem,
+  ParagraphItem,
+  PageKitConfigProvider,
+} from "page-kit-core";
+
+function ColumnDocument() {
+  return (
+    <PageKitConfigProvider>
+      <Document
+        columns={[
+          { width: 30 }, // Left column takes 30% of the page width
+          { width: 70 }, // Right column takes 70% of the page width
+        ]}
+        pageProps={{
+          maxWidth: 800,
+          shadow: true,
+        }}
+      >
+        {/* Sidebar content */}
+        <HeadingItem
+          columnIndex={0}
+          dimensions={{ width: 50, height: 20 }}
+          fontSize={18}
+        >
+          Sidebar
+        </HeadingItem>
+
+        <ParagraphItem
+          columnIndex={0}
+          dimensions={{ width: 50, height: 60 }}
+          fontSize={12}
+        >
+          Navigation, metadata, and other supporting information can be placed
+          in this sidebar column.
+        </ParagraphItem>
+
+        {/* Main content */}
+        <HeadingItem
+          columnIndex={1}
+          dimensions={{ width: 120, height: 20 }}
+          fontSize={24}
+        >
+          Main Content
+        </HeadingItem>
+
+        <ParagraphItem
+          columnIndex={1}
+          dimensions={{ width: 120, height: 100 }}
+          fontSize={12}
+        >
+          Your primary content goes here. The column system automatically
+          positions content within the specified column width. This helps create
+          consistent, professional layouts with minimal effort.
+        </ParagraphItem>
+      </Document>
+    </PageKitConfigProvider>
+  );
+}
+```
+
+#### Page-Level Columns
+
+Apply columns to a specific page:
+
+```tsx
+<Page
+  columns={[
+    { width: 50 }, // Left column takes 50% of page width
+    { width: 50 }, // Right column takes 50% of page width
+  ]}
+>
+  <HeadingItem
+    columnIndex={0}
+    dimensions={{ width: 80, height: 20 }}
+    fontSize={18}
+  >
+    Left Column
+  </HeadingItem>
+
+  <HeadingItem
+    columnIndex={1}
+    dimensions={{ width: 80, height: 20 }}
+    fontSize={18}
+  >
+    Right Column
+  </HeadingItem>
+
+  {/* Additional content */}
+</Page>
+```
+
+#### Column Layout Tips
+
+- The `columnIndex` prop specifies which column a component should appear in
+- Set column widths as percentages that sum to 100 for the entire page
+- Column layouts work with all Page Kit components
+- Components maintain their positioning within their assigned column
+- Create magazine-style layouts, sidebars, or multi-column articles
+- For responsive documents, column widths will maintain their proportions when resized
+
+#### Column-Aware Pagination
+
+Page Kit combines column layouts with automatic pagination to create complex multi-column documents that flow naturally across pages:
+
+```tsx
+import {
+  Document,
+  HeadingItem,
+  ParagraphItem,
+  PageKitConfigProvider,
+} from "page-kit-core";
+
+function MultiPageColumnDocument() {
+  return (
+    <PageKitConfigProvider>
+      <Document
+        columns={[
+          { width: 30, backgroundColor: "#f8f9fa" }, // Sidebar column
+          { width: 70 }, // Main content column
+        ]}
+        pageProps={{
+          maxWidth: 800,
+          shadow: true,
+          headerContent: <div>Document with Columns</div>,
+        }}
+      >
+        {/* Sidebar navigation - stays in column 0 across all pages */}
+        <HeadingItem
+          columnIndex={0}
+          dimensions={{ width: 50, height: 20 }}
+          fontSize={16}
+        >
+          Document Sections
+        </HeadingItem>
+
+        <ParagraphItem
+          columnIndex={0}
+          dimensions={{ width: 50, height: 30 }}
+          fontSize={12}
+        >
+          • Introduction • Main Content • Appendix
+        </ParagraphItem>
+
+        {/* Additional sidebar content that continues on next pages */}
+        <ParagraphItem
+          columnIndex={0}
+          dimensions={{ width: 50, height: 800 }} // Very tall content
+          fontSize={12}
+        >
+          This content will continue on subsequent pages while staying in the
+          sidebar column. Each column tracks its content height independently
+          and creates page breaks when needed.
+        </ParagraphItem>
+
+        {/* Main content - stays in column 1 across all pages */}
+        <HeadingItem
+          columnIndex={1}
+          dimensions={{ width: 120, height: 20 }}
+          fontSize={24}
+        >
+          Introduction
+        </HeadingItem>
+
+        <ParagraphItem
+          columnIndex={1}
+          dimensions={{ width: 120, height: 60 }}
+          fontSize={12}
+        >
+          This is the introduction section that appears in the main content
+          area. When content exceeds the available page height, pagination
+          occurs automatically while maintaining the column layout.
+        </ParagraphItem>
+
+        <HeadingItem
+          columnIndex={1}
+          dimensions={{ width: 120, height: 20 }}
+          fontSize={24}
+        >
+          Main Content
+        </HeadingItem>
+
+        <ParagraphItem
+          columnIndex={1}
+          dimensions={{ width: 120, height: 400 }} // Tall content
+          fontSize={12}
+        >
+          The pagination system tracks each column independently, allowing for
+          complex document layouts where different columns can have varying
+          amounts of content. This creates a natural content flow where the
+          sidebar and main content areas maintain their relative positions
+          across all pages of the document.
+        </ParagraphItem>
+      </Document>
+    </PageKitConfigProvider>
+  );
+}
+```
+
+#### Key Pagination Features
+
+- **Column Continuity**: Content maintains its assigned column across page breaks
+- **Independent Flow**: Each column can break onto new pages separately
+- **Synchronized Layout**: The same column structure appears on each page
+- **Automatic Balancing**: Items without a `columnIndex` are distributed to balance column heights
+
+This system makes it possible to create complex documents like reports, books, or magazines with consistent layouts across all pages.
 
 ## Theming and Configuration
 
