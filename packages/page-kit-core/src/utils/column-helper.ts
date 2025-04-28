@@ -63,15 +63,31 @@ export function organizeItemsByColumn(
   // Items without a columnIndex or with invalid index
   const remainingItems: React.ReactNode[] = [];
   
-  // First pass: organize items with specific columnIndex
+  // First pass: organize items with specific columnIndex and handle special components
   children.forEach((item) => {
-    if (React.isValidElement(item) && typeof item.props.columnIndex === 'number') {
-      const colIndex = item.props.columnIndex;
-      // Only add to column if the index is valid
-      if (colIndex >= 0 && colIndex < columnCount) {
-        columnItems[colIndex].push(item);
+    if (React.isValidElement(item)) {
+      // Check if it's a Layout component, which needs special handling
+      const componentType = item.type as any;
+      const componentName = componentType?.displayName || '';
+      
+      if (componentName === 'Layout') {
+        // Layout components are placed in the first column and will handle their own layout
+        columnItems[0].push(item);
+        return;
+      }
+      
+      // Handle regular items with columnIndex
+      if (typeof item.props.columnIndex === 'number') {
+        const colIndex = item.props.columnIndex;
+        // Only add to column if the index is valid
+        if (colIndex >= 0 && colIndex < columnCount) {
+          columnItems[colIndex].push(item);
+        } else {
+          // If column index is invalid, add to remaining items
+          remainingItems.push(item);
+        }
       } else {
-        // If column index is invalid, add to remaining items
+        // Items without columnIndex are added to remaining items
         remainingItems.push(item);
       }
     } else {

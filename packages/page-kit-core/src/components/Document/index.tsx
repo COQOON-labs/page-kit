@@ -52,6 +52,7 @@ export interface DocumentProps {
    * Column definitions to be applied to all pages in the document
    * Page-specific columns will override these if defined
    * Column widths should sum to 100%
+   * @deprecated Use the Layout component instead
    */
   columns?: ColumnDefinition[];
 
@@ -59,6 +60,15 @@ export interface DocumentProps {
    * Optional error handler for the error boundary
    */
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
+
+/**
+ * Layout information extracted from Layout components
+ */
+interface LayoutInfo {
+  columns: ColumnDefinition[];
+  items: React.ReactNode[];
+  parent: ReactElement | null;
 }
 
 /**
@@ -115,6 +125,13 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
       } else {
         return height;
       }
+    }
+    
+    // Special handling for Layout components
+    if (componentName === 'Layout') {
+      // For layout components, calculate the height based on its children
+      // We'll use a base height plus height of tallest column
+      return mmToPx(10); // Base height that will be adjusted during layout processing
     }
     
     // Calculate height for text items (ParagraphItem, HeadingItem, TextItem)
@@ -199,22 +216,44 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
     }
   }, [pageProps.maxWidth]);
   
-  // Function to find page-specific column definitions
-  const findPageSpecificColumns = useCallback((pageItems: React.ReactNode[]): ColumnDefinition[] | undefined => {
-    const pageSpecificColumnsItem = pageItems.find(item => {
-      if (isValidElement(item) && (item.props as any).columns) {
-        return true;
+  // Function to extract Layout components and their related information
+  const processLayouts = useCallback((items: React.ReactNode[]): {
+    layouts: LayoutInfo[];
+    remainingItems: React.ReactNode[];
+  } => {
+    const layouts: LayoutInfo[] = [];
+    const remainingItems: React.ReactNode[] = [];
+    
+    // First pass: identify Layout components
+    items.forEach(item => {
+      if (isValidElement(item)) {
+        const componentType = item.type as any;
+        const componentName = componentType?.displayName || '';
+        
+        if (componentName === 'Layout') {
+          // Extract column definitions and validate
+          const layoutProps = item.props as { columns: ColumnDefinition[], children: React.ReactNode };
+          const columns = validateColumnWidths(layoutProps.columns, "Layout") || [];
+          
+          // Extract children of the layout
+          const layoutChildren = React.Children.toArray(layoutProps.children);
+          
+          layouts.push({
+            columns,
+            items: layoutChildren,
+            parent: item as ReactElement
+          });
+        } else {
+          // This is a regular item, not a layout
+          remainingItems.push(item);
+        }
+      } else {
+        // Non-element nodes (strings, etc.)
+        remainingItems.push(item);
       }
-      return false;
     });
     
-    if (pageSpecificColumnsItem) {
-      const pageSpecificColumns = (pageSpecificColumnsItem as ReactElement).props.columns;
-      // Validate page-specific columns
-      return validateColumnWidths(pageSpecificColumns, `Page ${pageItems.indexOf(pageSpecificColumnsItem) + 1}`);
-    }
-    
-    return undefined;
+    return { layouts, remainingItems };
   }, []);
   
   // Helper to get column index from an item
@@ -233,7 +272,98 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
     return -1; // -1 means no specific column (will be auto-assigned)
   }, []);
   
-  // Distribute items into pages based on their heights - with column awareness
+  // Function to distribute items within a layout's columns
+  const distributeLayoutItems = useCallback((layout: LayoutInfo, availableHeight: number): React.ReactNode[] => {
+    const { columns, items } = layout;
+    const columnCount = columns.length;
+    
+    // Initialize column height tracking
+    const columnHeights: number[] = Array(columnCount).fill(0);
+    const columnItems: React.ReactNode[][] = Array(columnCount).fill(0).map(() => []);
+    const unassignedItems: React.ReactNode[] = [];
+    
+    // Process each item and distribute across columns
+    items.forEach(item => {
+      if (isValidElement(item)) {
+        try {
+          const itemHeight = getItemHeight(item as ReactElement);
+          const columnIndex = getItemColumnIndex(item as ReactElement, columnCount);
+          
+          // Handle item with specific column index
+          if (columnIndex >= 0) {
+            // Calculate height with spacing
+            const heightWithSpacing = columnHeights[columnIndex] === 0 
+              ? itemHeight 
+              : itemHeight + itemSpacingPx;
+            
+            // Add the item to its specified column
+            columnItems[columnIndex].push(item);
+            columnHeights[columnIndex] += heightWithSpacing;
+          } else {
+            // Items without a specific column, collect for balanced distribution
+            unassignedItems.push(item);
+          }
+        } catch (error) {
+          console.warn('Error processing layout item:', error);
+        }
+      } else {
+        // Non-element items
+        unassignedItems.push(item);
+      }
+    });
+    
+    // Distribute unassigned items to balance columns
+    unassignedItems.forEach(item => {
+      if (isValidElement(item)) {
+        // Find the column with the least height
+        const minHeightColumnIndex = columnHeights.indexOf(Math.min(...columnHeights));
+        const itemHeight = getItemHeight(item as ReactElement);
+        
+        // Calculate height with spacing if needed
+        const heightWithSpacing = columnHeights[minHeightColumnIndex] === 0 
+          ? itemHeight 
+          : itemHeight + itemSpacingPx;
+        
+        // Add to the column with least height
+        columnItems[minHeightColumnIndex].push(item);
+        columnHeights[minHeightColumnIndex] += heightWithSpacing;
+      } else {
+        // For non-element items, add to first column
+        columnItems[0].push(item);
+      }
+    });
+    
+    // Create the structured layout by wrapping items in column divs
+    const wrappedColumns = columns.map((column, idx) => {
+      return React.createElement(
+        'div',
+        { 
+          key: `layout-column-${idx}`,
+          className: 'page-layout-column',
+          style: {
+            width: `${column.width}%`,
+            backgroundColor: column.backgroundColor,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: `${itemSpacingPx}px`
+          },
+          'data-column-index': idx
+        },
+        columnItems[idx]
+      );
+    });
+    
+    // Clone the original layout element with the new column structure
+    return [
+      React.cloneElement(
+        layout.parent as ReactElement,
+        {},
+        ...wrappedColumns
+      )
+    ];
+  }, [getItemHeight, getItemColumnIndex, itemSpacingPx]);
+  
+  // Distribute items into pages based on their heights - with layout awareness
   useEffect(() => {
     // Convert to array and filter out null/undefined items
     const childrenArray = Children.toArray(children).filter(Boolean);
@@ -243,7 +373,10 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
       return;
     }
     
-    // Default to 1 column if no columns defined
+    // Process layouts and extract items
+    const { layouts, remainingItems } = processLayouts(childrenArray);
+    
+    // Default to 1 column if no document-level columns defined
     const columnCount = validatedColumns?.length || 1;
     const paginatedPages: React.ReactNode[][] = [];
     let currentPage: React.ReactNode[] = [];
@@ -254,14 +387,28 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
     // Track unassigned items (no specific columnIndex) for each page
     let unassignedItems: React.ReactNode[] = [];
     
-    // Process each item and distribute them across columns and pages
-    childrenArray.forEach((item) => {
+    // First process layouts - each layout gets its own structure
+    layouts.forEach(layout => {
+      // Distribute items within this layout
+      const layoutWithItems = distributeLayoutItems(layout, availableHeight);
+      
+      // Add layout to current page
+      currentPage.push(...layoutWithItems);
+      
+      // Ensure page break after a layout
+      if (currentPage.length > 0) {
+        paginatedPages.push([...currentPage]);
+        currentPage = [];
+      }
+    });
+    
+    // Then process remaining regular items
+    remainingItems.forEach((item) => {
       if (isValidElement(item)) {
         try {
-          // Check if this item defines page-specific columns
+          // Handle page-specific columns (legacy support)
           const props = item.props as { columns?: ColumnDefinition[] };
           if (props.columns) {
-            // If we have content on the current page, finalize it
             if (currentPage.length > 0 || unassignedItems.length > 0) {
               // Add unassigned items to the page first
               currentPage = [...currentPage, ...unassignedItems];
@@ -379,7 +526,16 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
     }
     
     setPages(paginatedPages);
-  }, [children, availableHeight, itemSpacingPx, getItemHeight, validatedColumns, getItemColumnIndex]);
+  }, [
+    children, 
+    availableHeight, 
+    itemSpacingPx, 
+    getItemHeight, 
+    validatedColumns, 
+    getItemColumnIndex, 
+    processLayouts,
+    distributeLayoutItems
+  ]);
   
   // Handle empty document
   if (pages.length === 0) {
@@ -402,9 +558,23 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   return (
     <div ref={documentRef} className={className}>
       {pages.map((pageItems, index) => {
-        // Determine effective columns for this page
-        const pageSpecificColumns = findPageSpecificColumns(pageItems);
-        const effectiveColumns = pageSpecificColumns || validatedColumns;
+        // Determine if this page has legacy column definition
+        const pageSpecificColumns = pageItems.find(item => {
+          if (isValidElement(item) && (item.props as any).columns) {
+            const componentType = item.type as any;
+            const componentName = componentType?.displayName || '';
+            return componentName !== 'Layout';
+          }
+          return false;
+        });
+        
+        // Get column definitions if found
+        const legacyColumns = pageSpecificColumns ? 
+          validateColumnWidths((pageSpecificColumns as ReactElement).props.columns, `Page ${index + 1}`) : 
+          undefined;
+          
+        // Use legacy columns or document-level columns (for backward compatibility)
+        const effectiveColumns = legacyColumns || validatedColumns;
           
         return (
           <Page

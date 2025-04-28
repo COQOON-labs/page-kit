@@ -6,6 +6,7 @@ import {
   ShapeItem,
   CalloutItem,
   ColumnDefinition,
+  Layout
 } from '../../page-kit-core/src';
 
 // Sample long text for testing
@@ -115,106 +116,196 @@ export default function AutoPaginationExample() {
             }}
             className="flex flex-col items-center gap-8"
           >
-            {/* Main heading */}
+            {/* Single column layout using default */}
+            <Layout>
+              {/* Main heading */}
+              <HeadingItem 
+                fontSize={24}
+                color="#1a56db"
+              >
+                Automatic Page Flow Demo
+              </HeadingItem>
+              
+              <ShapeItem
+                shapeType="line"
+                borderColor="#333"
+                borderWidth={0.5}
+              />
+              
+              {/* Introduction */}
+              <ParagraphItem
+                fontSize={12}
+              >
+                This document demonstrates the automatic page flow functionality. 
+                Items are automatically distributed across pages based on their height 
+                and the remaining space on each page.
+              </ParagraphItem>
+              
+              <CalloutItem
+                variant="info"
+                calloutTitle="Automatic Pagination"
+              >
+                With automatic pagination, you no longer need to manually place items on specific pages.
+                The system automatically calculates where each item should be placed based on its dimensions.
+              </CalloutItem>
+              
+              {/* First paragraph of lorem ipsum - full page 1 */}
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+              >
+                {loremIpsum.split('\n\n')[0]}
+              </ParagraphItem>
+
+              {/* First paragraph - page 1 */}
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+              >
+                {loremIpsum.split('\n\n')[1]}
+              </ParagraphItem>
+
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+              >
+                When working with multi-page documents, it's important to understand how page breaks
+                are calculated. The system tracks the available space on each page and automatically
+                moves content to the next page when needed. This gives you the flexibility to focus on
+                your content without worrying about manual page layout.
+                
+                The automatic pagination system also respects item properties like page breaks before/after,
+                ensuring your content flows exactly as intended while maintaining good document structure.
+              </ParagraphItem>
+
+              {/* Third paragraph - page 1 */}
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+              >
+                {loremIpsum.split('\n\n')[2]}
+              </ParagraphItem>
+              
+              {/* Fourth paragraph - now page 2 */}
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+              >
+                {loremIpsum.split('\n\n')[3]}
+              </ParagraphItem>
+            </Layout>
+            
+            
+            
+            {/* Two-column layout */}
+            <Layout columns={twoColumnLayout}>
+              <CalloutItem
+                variant="tip"
+                calloutTitle="Design Tip"
+                columnIndex={0}
+              >
+                With the Layout component, you can create column-based layouts anywhere in the document.
+                Columns can have different widths and background colors.
+              </CalloutItem>
+              
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+                columnIndex={1}
+              >
+                {loremIpsum.split('\n\n')[4]}
+              </ParagraphItem>
+              
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+                columnIndex={0}
+              >
+                Notice how items are placed in specific columns using the columnIndex property.
+                This layout is encapsulated within a Layout component, making it easy to use and reuse.
+              </ParagraphItem>
+              
+              <ParagraphItem
+                fontSize={11}
+                lineHeight={1.4}
+                columnIndex={1}
+              >
+                This approach is more flexible than setting columns at the page level.
+                You can have multiple different layouts within a single document or page.
+              </ParagraphItem>
+            </Layout>
+            
+            {/* Regular content after the layout */}
             <HeadingItem 
-              fontSize={24}
-              color="#1a56db"
+              fontSize={14}
+              color="#444"
             >
-              Automatic Page Flow Demo
+              Back to Single Column
             </HeadingItem>
             
-            <ShapeItem
-              shapeType="line"
-              borderColor="#333"
-              borderWidth={0.5}
-            />
-            
-            {/* Introduction */}
-            <ParagraphItem
-              fontSize={12}
-            >
-              This document demonstrates the automatic page flow functionality. 
-              Items are automatically distributed across pages based on their height 
-              and the remaining space on each page.
-            </ParagraphItem>
-            
-            <CalloutItem
-              variant="info"
-              calloutTitle="Automatic Pagination"
-            >
-              With automatic pagination, you no longer need to manually place items on specific pages.
-              The system automatically calculates where each item should be placed based on its dimensions.
-            </CalloutItem>
-            
-            {/* First paragraph of lorem ipsum - full page 1 */}
             <ParagraphItem
               fontSize={11}
               lineHeight={1.4}
             >
-              {loremIpsum.split('\n\n')[0]}
+              After a layout section, content automatically returns to the default single-column flow.
+              This makes it easy to mix and match different layout styles within a document.
             </ParagraphItem>
-
-            {/* First paragraph - page 1 */}
-            <ParagraphItem
-              fontSize={11}
-              lineHeight={1.4}
+            
+            {/* Three-column layout example */}
+            <HeadingItem 
+              fontSize={14}
+              color="#333"
             >
-              {loremIpsum.split('\n\n')[1]}
-            </ParagraphItem>
-
-            <ParagraphItem
-              fontSize={11}
-              lineHeight={1.4}
-            >
-              When working with multi-page documents, it's important to understand how page breaks
-              are calculated. The system tracks the available space on each page and automatically
-              moves content to the next page when needed. This gives you the flexibility to focus on
-              your content without worrying about manual page layout.
+              Three-Column Layout
+            </HeadingItem>
+            
+            <Layout columns={threeColumnLayout}>
+              <ParagraphItem
+                fontSize={10}
+                lineHeight={1.3}
+                columnIndex={0}
+              >
+                This is the first column in a three-column layout.
+                Notice how each column maintains its own flow and styling.
+              </ParagraphItem>
               
-              The automatic pagination system also respects item properties like page breaks before/after,
-              ensuring your content flows exactly as intended while maintaining good document structure.
-            </ParagraphItem>
-
-            {/* Third paragraph - page 1 */}
-            <ParagraphItem
-              fontSize={11}
-              lineHeight={1.4}
-            >
-              {loremIpsum.split('\n\n')[2]}
-            </ParagraphItem>
-            
-            {/* Fourth paragraph - now page 2 */}
-            <ParagraphItem
-              fontSize={11}
-              lineHeight={1.4}
-            >
-              {loremIpsum.split('\n\n')[3]}
-            </ParagraphItem>
-            
-            {/* Column layout marker - this will apply columns to page 4 */}
-            {/* <ParagraphItem 
-              columns={twoColumnLayout}
-            /> */}
+              <CalloutItem
+                variant="warning"
+                calloutTitle="Column Layout Note"
+                columnIndex={1}
+              >
+                Layouts can be nested within a document at any point.
+                Each layout manages its own column structure.
+              </CalloutItem>
+              
+              <ParagraphItem
+                fontSize={10}
+                lineHeight={1.3}
+                columnIndex={2}
+              >
+                This is the third column of the layout.
+                Column widths can be customized for each layout.
+              </ParagraphItem>
+            </Layout>
             
             {/* Second callout - will be on page 4 in the first column */}
-            {/* <CalloutItem
+            <CalloutItem
               variant="tip"
               calloutTitle="Design Tip"
-              columnIndex={0}
             >
               When working with automatic pagination, you still need to provide appropriate 
               height values for your items. This allows the system to accurately calculate 
               page breaks.
-            </CalloutItem> */}
+            </CalloutItem>
             
             {/* Second paragraph of lorem ipsum - in the second column */}
-            {/* <ParagraphItem
+            <ParagraphItem
               fontSize={11}
               lineHeight={1.4}
               columnIndex={1}
             >
               {loremIpsum.split('\n\n')[4]}
-            </ParagraphItem> */}
+            </ParagraphItem>
 
             {/* Additional callout in first column */}
             {/* <CalloutItem
@@ -487,6 +578,60 @@ export default function AutoPaginationExample() {
               columns={[{ width: 100 }]}
             />
             
+            {/* Four-column layout example */}
+            <HeadingItem 
+              fontSize={14}
+              color="#333"
+            >
+              Four-Column Layout
+            </HeadingItem>
+            
+            <Layout columns={fourColumnLayout}>
+              <HeadingItem 
+                fontSize={12}
+                color="#333"
+                columnIndex={0}
+              >
+                First Column
+              </HeadingItem>
+              
+              <ParagraphItem
+                fontSize={9}
+                lineHeight={1.3}
+                columnIndex={0}
+              >
+                This demonstrates a four-column layout using the Layout component.
+                Each column can have its own content, styling, and flow.
+              </ParagraphItem>
+              
+              <ParagraphItem
+                fontSize={9}
+                lineHeight={1.3}
+                columnIndex={1}
+              >
+                The second column can have different content.
+                The Layout component handles the distribution automatically.
+              </ParagraphItem>
+              
+              <ParagraphItem
+                fontSize={9}
+                lineHeight={1.3}
+                columnIndex={2}
+              >
+                Third column with its own content.
+                Column widths are defined when creating the layout.
+              </ParagraphItem>
+              
+              <CalloutItem
+                variant="tip"
+                calloutTitle="Layout System"
+                columnIndex={3}
+              >
+                This flexible layout system makes it easy to create complex documents
+                with multiple column configurations.
+              </CalloutItem>
+            </Layout>
+            
             <HeadingItem 
               fontSize={16}
               color="#333"
@@ -519,192 +664,6 @@ export default function AutoPaginationExample() {
               each item maintaining its formatting and indentation.
             </ParagraphItem>
 
-            <ParagraphItem
-              columns={fourColumnLayout}
-            />
-
-            <HeadingItem 
-              fontSize={14}
-              color="#333"
-              columnIndex={0}
-            >
-              Four-Column Layout Example
-            </HeadingItem>
-
-            <ParagraphItem
-              fontSize={9}
-              lineHeight={1.3}
-              columnIndex={0}
-            >
-              {loremIpsum.split('\n\n')[0].substring(0, 300)}
-              
-              This first column contains much more content than the others, deliberately
-              exceeding the page height to demonstrate column overflow behavior.
-              
-              When a column's content exceeds the available space on a page, the pagination
-              system should move the excess content to the next page while maintaining the
-              column structure.
-              
-              Notice how this column continues to the next page before the other columns
-              are filled, showing how independent column tracking works.
-              
-              {loremIpsum.split('\n\n')[1].substring(0, 300)}
-              
-              Each column's content flow is tracked separately, allowing for proper pagination
-              regardless of how content is distributed across columns.
-              
-              This is particularly useful for complex layouts where columns may contain
-              different types and amounts of content.
-              
-              {loremIpsum.split('\n\n')[2].substring(0, 300)}
-            </ParagraphItem>
-
-            <ParagraphItem
-              fontSize={9}
-              lineHeight={1.3}
-              columnIndex={1}
-            >
-              {loremIpsum.split('\n\n')[3].substring(0, 300)}
-              
-              This second column has a moderate amount of content, less than the first
-              column but still enough to demonstrate pagination behavior.
-              
-              As the first column overflows to the next page, this column's content should
-              remain in its proper position relative to the other columns.
-              
-              {loremIpsum.split('\n\n')[4].substring(0, 100)}
-            </ParagraphItem>
-
-            <ParagraphItem
-              fontSize={9}
-              lineHeight={1.3}
-              columnIndex={2}
-            >
-              {loremIpsum.split('\n\n')[5].substring(0, 300)}
-              
-              The third column contains even less content than the second, creating
-              an unbalanced layout that challenges the pagination system.
-              
-              Despite this imbalance, the system should maintain proper column
-              structure across pages.
-            </ParagraphItem>
-
-            <CalloutItem
-              variant="tip"
-              calloutTitle="Advanced Layout"
-              columnIndex={3}
-            >
-              This four-column layout demonstrates the flexibility of the column system.
-              You can create complex layouts for data-dense pages, catalogs, or multi-section
-              reports. Each column can have its own background color and content.
-              
-              The pagination system ensures content flows correctly across columns and pages,
-              maintaining the integrity of your document structure.
-            </CalloutItem>
-            
-            <ParagraphItem
-              fontSize={9}
-              lineHeight={1.3}
-              columnIndex={1}
-            >
-              {loremIpsum.split('\n\n')[6].substring(0, 400)}
-              
-              This additional content for the second column should overflow to the next
-              page, joining the content from the first column.
-              
-              When multiple columns overflow, they should all maintain their relative
-              positions on subsequent pages, preserving the readability and structure
-              of the document.
-              
-              {loremIpsum.split('\n\n')[7].substring(0, 300)}
-            </ParagraphItem>
-            
-            <ParagraphItem
-              fontSize={9}
-              lineHeight={1.3}
-              columnIndex={2}
-            >
-              {loremIpsum.split('\n\n')[8].substring(0, 400)}
-              
-              Now the third column also has enough content to overflow to the next page,
-              creating a situation where three out of four columns continue to the next page.
-              
-              This tests the pagination system's ability to handle different overflow
-              scenarios within the same multi-column layout.
-              
-              {loremIpsum.split('\n\n')[9].substring(0, 350)}
-            </ParagraphItem>
-            
-            <ParagraphItem
-              fontSize={9}
-              lineHeight={1.3}
-              columnIndex={3}
-            >
-              {loremIpsum.split('\n\n')[0].substring(0, 500)}
-              
-              Finally, the fourth column also overflows to the next page, creating a
-              situation where all columns continue across page boundaries.
-              
-              This comprehensive test demonstrates the pagination system's robustness
-              in handling complex multi-column layouts with varying content lengths.
-              
-              {loremIpsum.split('\n\n')[1].substring(300, 800)}
-            </ParagraphItem>
-            
-            <ParagraphItem
-              columns={[{ width: 100 }]}
-            />
-            
-            <HeadingItem 
-              fontSize={16}
-              color="#333"
-            >
-              Final Thoughts
-            </HeadingItem>
-            
-            <ParagraphItem
-              fontSize={11}
-              lineHeight={1.4}
-            >
-              Automatic pagination combined with column layouts offers powerful document creation capabilities.
-              You can create complex multi-page, multi-column documents with consistent layouts and proper
-              content flow with minimal manual positioning.
-              
-              Throughout this example, we've demonstrated several key aspects of the pagination system:
-              
-              • Basic single-column pagination with content flowing across pages
-              • Two-column layouts with independent column content
-              • Three-column layouts with background colors and varying content lengths
-              • Four-column layouts with column overflow handling
-              • Complex pagination scenarios with multiple columns overflowing simultaneously
-              
-              These demonstrations show the flexibility and robustness of the automatic pagination
-              system in handling a wide range of document layouts and content types.
-            </ParagraphItem>
-            
-            <ParagraphItem
-              fontSize={11}
-              lineHeight={1.4}
-            >
-              This example has demonstrated various layout configurations across multiple pages:
-              
-              • Single-column layouts for standard document flow
-              • Two-column layouts for side-by-side content presentation
-              • Three-column layouts for more complex information distribution
-              • Four-column layouts for data-dense pages and catalogs
-              
-              The pagination system handles all these layouts elegantly, ensuring your content
-              flows naturally across pages while maintaining the defined structure.
-              
-              Each column's content flow is tracked independently, allowing columns to overflow
-              to subsequent pages when needed. This independent tracking ensures that content
-              is always presented correctly, regardless of how it's distributed across columns.
-              
-              The system also properly maintains column widths, background colors, and relative
-              positioning across page boundaries, creating a consistent reading experience throughout
-              the document.
-            </ParagraphItem>
-
             <CalloutItem
               variant="note"
               calloutTitle="Next Steps"
@@ -713,14 +672,7 @@ export default function AutoPaginationExample() {
               to see how the automatic pagination system adapts to your specific document needs.
               The Page Kit library provides a flexible foundation for creating sophisticated multi-page
               documents with minimal effort.
-              
-              You can also explore advanced features like conditional page breaks, dynamic content
-              generation, and integration with data sources to create even more powerful document
-              generation workflows.
-              
-              For more information and documentation, refer to the Page Kit documentation or explore
-              the example applications provided with the library.
-            </CalloutItem> */}
+            </CalloutItem>
           </Document>
         </PageKitConfigProvider>
         
@@ -733,6 +685,7 @@ export default function AutoPaginationExample() {
             <li><strong>Type-safe props</strong> - DOM props are properly filtered and typed</li>
             <li><strong>Column layouts</strong> - Support for multi-column pages with individual item placement</li>
             <li><strong>Validation</strong> - Input validation for dimension values and column definitions</li>
+            <li><strong>Layout component</strong> - Flexible column layouts that can be nested within documents</li>
           </ul>
         </div>
       </div>
