@@ -73,11 +73,26 @@ export function calculatePageContentHeight(
   const headerHeightPx = config.header?.show ? mmToPx(config.header.height || 0) : 0;
   const footerHeightPx = config.footer?.show ? mmToPx(config.footer.height || 0) : 0;
   
-  // Buffer for rounding errors (optional)
-  const buffer = addBuffer ? 10 : 0;
+  // Increased buffer to provide more space for content and prevent too-early page breaks
+  // This gives the pagination algorithm more room to work with
+  const buffer = addBuffer ? 30 : 0; // Increased from 10 to 30
   
   // Calculate available content height
-  return pageHeight - paddingTopPx - paddingBottomPx - headerHeightPx - footerHeightPx + buffer;
+  const availableHeight = pageHeight - paddingTopPx - paddingBottomPx - headerHeightPx - footerHeightPx + buffer;
+  
+  // Add debug information with console.log instead of console.debug
+  console.log(`[PageKit DEBUG] Page content calculation:
+    - Page width: ${pageWidth}px
+    - Page height: ${pageHeight}px
+    - Padding top: ${paddingTopPx}px
+    - Padding bottom: ${paddingBottomPx}px
+    - Header height: ${headerHeightPx}px
+    - Footer height: ${footerHeightPx}px
+    - Buffer: ${buffer}px
+    - Available height: ${availableHeight}px
+  `);
+  
+  return availableHeight;
 }
 
 /**

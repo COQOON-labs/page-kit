@@ -6,7 +6,8 @@ import {
   ShapeItem,
   CalloutItem,
   ColumnDefinition,
-  Layout
+  DocumentLayout,
+  PageLayout
 } from '../../page-kit-core/src';
 
 // Sample long text for testing
@@ -115,9 +116,13 @@ export default function AutoPaginationExample() {
               </div>
             }}
             className="flex flex-col items-center gap-8"
+            style={{
+              "--debug-odd-page-color": "rgba(230, 240, 255, 0.2)",
+              "--debug-even-page-color": "rgba(255, 230, 240, 0.2)",
+            } as React.CSSProperties}
           >
             {/* Single column layout using default */}
-            <Layout>
+            <DocumentLayout>
               {/* Main heading */}
               <HeadingItem 
                 fontSize={24}
@@ -193,18 +198,18 @@ export default function AutoPaginationExample() {
               >
                 {loremIpsum.split('\n\n')[3]}
               </ParagraphItem>
-            </Layout>
+            </DocumentLayout>
             
             
             
             {/* Two-column layout */}
-            <Layout columns={twoColumnLayout}>
+            <DocumentLayout columns={twoColumnLayout} pageBreakBefore={true}>
               <CalloutItem
                 variant="tip"
                 calloutTitle="Design Tip"
                 columnIndex={0}
               >
-                With the Layout component, you can create column-based layouts anywhere in the document.
+                With the DocumentLayout component, you can create column-based layouts anywhere in the document.
                 Columns can have different widths and background colors.
               </CalloutItem>
               
@@ -222,7 +227,7 @@ export default function AutoPaginationExample() {
                 columnIndex={0}
               >
                 Notice how items are placed in specific columns using the columnIndex property.
-                This layout is encapsulated within a Layout component, making it easy to use and reuse.
+                This layout is encapsulated within a DocumentLayout component, making it easy to use and reuse.
               </ParagraphItem>
               
               <ParagraphItem
@@ -233,7 +238,7 @@ export default function AutoPaginationExample() {
                 This approach is more flexible than setting columns at the page level.
                 You can have multiple different layouts within a single document or page.
               </ParagraphItem>
-            </Layout>
+            </DocumentLayout>
             
             {/* Regular content after the layout */}
             <HeadingItem 
@@ -259,7 +264,7 @@ export default function AutoPaginationExample() {
               Three-Column Layout
             </HeadingItem>
             
-            <Layout columns={threeColumnLayout}>
+            <DocumentLayout columns={threeColumnLayout} pageBreakBefore={true}>
               <ParagraphItem
                 fontSize={10}
                 lineHeight={1.3}
@@ -286,7 +291,7 @@ export default function AutoPaginationExample() {
                 This is the third column of the layout.
                 Column widths can be customized for each layout.
               </ParagraphItem>
-            </Layout>
+            </DocumentLayout>
             
             {/* Second callout - will be on page 4 in the first column */}
             <CalloutItem
@@ -586,7 +591,7 @@ export default function AutoPaginationExample() {
               Four-Column Layout
             </HeadingItem>
             
-            <Layout columns={fourColumnLayout}>
+            <DocumentLayout columns={fourColumnLayout} pageBreakBefore={true}>
               <HeadingItem 
                 fontSize={12}
                 color="#333"
@@ -600,7 +605,7 @@ export default function AutoPaginationExample() {
                 lineHeight={1.3}
                 columnIndex={0}
               >
-                This demonstrates a four-column layout using the Layout component.
+                This demonstrates a four-column layout using the DocumentLayout component.
                 Each column can have its own content, styling, and flow.
               </ParagraphItem>
               
@@ -610,7 +615,7 @@ export default function AutoPaginationExample() {
                 columnIndex={1}
               >
                 The second column can have different content.
-                The Layout component handles the distribution automatically.
+                The DocumentLayout component handles the distribution automatically.
               </ParagraphItem>
               
               <ParagraphItem
@@ -630,7 +635,7 @@ export default function AutoPaginationExample() {
                 This flexible layout system makes it easy to create complex documents
                 with multiple column configurations.
               </CalloutItem>
-            </Layout>
+            </DocumentLayout>
             
             <HeadingItem 
               fontSize={16}
@@ -649,19 +654,66 @@ export default function AutoPaginationExample() {
               </ParagraphItem>
             ))}
 
+            <HeadingItem 
+              fontSize={16}
+              color="#333"
+            >
+              Page-Specific Layout Example
+            </HeadingItem>
+            
             <ParagraphItem
               fontSize={11}
               lineHeight={1.4}
             >
-              {loremIpsum.split('\n\n')[0]}
+              Unlike DocumentLayout which can flow across multiple pages, PageLayout is designed to be 
+              used within a specific page and doesn't support pagination across page boundaries.
+              This makes it ideal for structured content that must stay together on a single page.
+            </ParagraphItem>
+            
+            <PageLayout columns={[
+              { width: 40, backgroundColor: '#f5f5f5' },
+              { width: 60 }
+            ]}>
+              <HeadingItem
+                fontSize={14}
+                color="#444"
+                columnIndex={0}
+              >
+                Page-Constrained Layout
+              </HeadingItem>
               
-              The feature list above demonstrates how lists and other content types are
-              automatically paginated when they exceed the available space on a page.
-              Each list item is treated as a separate component with its own height,
-              allowing for precise pagination control.
+              <ParagraphItem
+                fontSize={10}
+                lineHeight={1.3}
+                columnIndex={0}
+              >
+                This PageLayout component is constrained to a single page.
+                Its content will not flow across page boundaries, making it
+                ideal for content that should always appear together.
+              </ParagraphItem>
               
-              This approach ensures that lists are properly broken across pages, with
-              each item maintaining its formatting and indentation.
+              <ParagraphItem
+                fontSize={10}
+                lineHeight={1.3}
+                columnIndex={1}
+              >
+                Use PageLayout when you need column layouts within a specific
+                page context. This ensures all content in the layout stays on
+                the same page rather than breaking across pages.
+              </ParagraphItem>
+            </PageLayout>
+
+            <ParagraphItem
+              fontSize={11}
+              lineHeight={1.4}
+            >
+              The example above demonstrates the difference between DocumentLayout and PageLayout.
+              
+              - DocumentLayout: Can span multiple pages, automatically handling pagination and flow.
+              - PageLayout: Constrained to a single page, ensuring all its content stays together.
+              
+              This separation provides clearer semantics and more intuitive behavior based on where
+              and how you want to use column layouts in your documents.
             </ParagraphItem>
 
             <CalloutItem

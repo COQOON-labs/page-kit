@@ -12,6 +12,128 @@ interface ItemWithDimensions {
   dimensions?: ImageDimensions;
 }
 
+/**
+ * Helper function to calculate an item's height based on its type and properties
+ * Extracted for better separation of concerns
+ */
+function calculateItemHeight(
+  item: ReactElement, 
+  pageMaxWidth = 800
+): number {
+  if (!isValidElement(item)) {
+    return mmToPx(10); // Default 10mm height
+  }
+  
+  const componentType = item.type as any;
+  const componentName = componentType?.displayName || '';
+  
+  console.log(`[PageKit DEBUG] Calculating height for component: ${componentName}`);
+  
+  // Cast to a type that might have dimensions
+  const itemProps = item.props as PageItemProps & ItemWithDimensions;
+  
+  // Handle explicit dimensions if provided (for backward compatibility)
+  if (itemProps.dimensions?.height) {
+    const height = getDimensionInPx(itemProps.dimensions.height);
+    
+    // Validate height to ensure it's positive
+    if (isNaN(height) || height <= 0) {
+      console.warn(`Item has invalid height: ${itemProps.dimensions.height}. Using calculated height.`);
+      // Fall through to calculated height
+    } else {
+      return height;
+    }
+  }
+  
+  // Special handling for Layout components
+  if (componentName === 'DocumentLayout' || componentName === 'PageLayout') {
+    // For layout components, calculate the height based on its children
+    // We'll use a larger base height to ensure it's more likely to break across pages
+    return mmToPx(40); // Increased height to better support pagination
+  }
+  
+  // Calculate height for text items (ParagraphItem, HeadingItem, TextItem)
+  if (
+    componentName === 'TextItem' || 
+    componentName === 'ParagraphItem' || 
+    componentName === 'HeadingItem'
+  ) {
+    // Cast to TextItemProps for proper typing
+    const textProps = item.props as TextItemProps;
+    
+    // Get text properties
+    const fontSize = textProps.fontSize || 12; // Default font size
+    const lineHeight = typeof textProps.lineHeight === 'number' 
+      ? textProps.lineHeight 
+      : 1.5; // Default line height
+    
+    // Get the actual content
+    let content = '';
+    if (typeof textProps.children === 'string') {
+      content = textProps.children;
+    } else if (Array.isArray(textProps.children)) {
+      // Flatten children array to get all text content
+      content = React.Children.toArray(textProps.children)
+        .filter(child => typeof child === 'string')
+        .join(' ');
+    }
+    
+    // Calculate approximate characters per line (assuming average char width is 60% of font height)
+    const fontSizePx = ptToPx(fontSize);
+    const avgCharWidth = fontSizePx * 0.6;
+    const contentWidthPx = pageMaxWidth - (mmToPx(40)); // Assuming 20mm padding on each side
+    const charsPerLine = Math.floor(contentWidthPx / avgCharWidth);
+    
+    // Calculate number of lines
+    const contentLength = content.length;
+    // Ensure at least 2 lines for short text to prevent underestimation
+    const lines = Math.max(2, Math.ceil(contentLength / charsPerLine));
+    
+    // Calculate height in pixels
+    const heightPx = lines * fontSizePx * lineHeight;
+    
+    // Add more padding for container to prevent clipping
+    return heightPx + fontSizePx; // Add extra padding proportional to font size
+  }
+  
+  // For callout items, calculate based on content plus extra space
+  if (componentName === 'CalloutItem') {
+    // Base height for callout container
+    const baseHeight = mmToPx(25); // Increased from 15mm to 25mm for padding/borders
+    
+    // Calculate content height if there's a child text
+    const calloutContent = itemProps.children;
+    if (calloutContent) {
+      // Create a simpler mock calculation
+      if (typeof calloutContent === 'string') {
+        // More generous estimation based on content length
+        return baseHeight + mmToPx(calloutContent.length / 30);
+      }
+      return baseHeight + mmToPx(20); // Increased default for complex content
+    }
+    
+    return baseHeight;
+  }
+  
+  // For other item types
+  // Use a height estimation based on component type
+  switch (componentName) {
+    case 'ShapeItem':
+      return mmToPx(15); // Default shape height
+    case 'ImageItem':
+      return mmToPx(50); // Default image height
+    case 'TableItem': {
+      // For tables, estimate based on approximate rows
+      // Safely access rows if available
+      const tableProps = item.props as any;
+      const rowCount = tableProps.rows?.length || 3;
+      return mmToPx(10 + rowCount * 8);
+    }
+    default:
+      return mmToPx(20); // Default height for unknown components
+  }
+}
+
 // Validate column widths
 const validateColumns = (columns?: ColumnDefinition[]): ColumnDefinition[] | undefined => {
   if (!columns || columns.length === 0) {
@@ -49,6 +171,11 @@ export interface DocumentProps {
   className?: string;
   
   /**
+   * Optional style object for the document container
+   */
+  style?: React.CSSProperties;
+  
+  /**
    * Column definitions to be applied to all pages in the document
    * Page-specific columns will override these if defined
    * Column widths should sum to 100%
@@ -63,13 +190,27 @@ export interface DocumentProps {
 }
 
 /**
- * Layout information extracted from Layout components
+ * Base layout information shared by both layout types
  */
-interface LayoutInfo {
+interface BaseLayoutInfo {
   columns: ColumnDefinition[];
   items: React.ReactNode[];
   parent: ReactElement | null;
+  id?: string;
 }
+
+/**
+ * Layout information specific to DocumentLayout components
+ */
+interface DocumentLayoutInfo extends BaseLayoutInfo {
+  pageBreakBefore?: boolean;
+  pageBreakAfter?: boolean;
+}
+
+/**
+ * Layout information specific to PageLayout components
+ */
+type PageLayoutInfo = BaseLayoutInfo;
 
 /**
  * Document component that automatically distributes content across pages
@@ -78,6 +219,7 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   pageProps = {}, 
   children,
   className = '',
+  style,
   columns
 }) => {
   const [pages, setPages] = useState<React.ReactNode[][]>([]);
@@ -93,7 +235,10 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   // Memoize the available height calculation
   const availableHeight = useMemo(() => {
     const maxWidth = pageProps.maxWidth || 800;
-    return calculatePageContentHeight(maxWidth, config, true);
+    console.log(`[PageKit DEBUG] Calculating available height with maxWidth: ${maxWidth}px`);
+    const height = calculatePageContentHeight(maxWidth, config, true);
+    console.log(`[PageKit DEBUG] Available height calculated: ${height}px`);
+    return height;
   }, [pageProps.maxWidth, config]);
   
   // Memoize the spacing calculation
@@ -104,144 +249,76 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   
   // Helper function to get item height from dimensions
   const getItemHeight = useCallback((item: ReactElement): number => {
-    if (!isValidElement(item)) {
-      return mmToPx(10); // Default 10mm height
-    }
-    
-    const componentType = item.type as any;
-    const componentName = componentType?.displayName || '';
-    
-    // Cast to a type that might have dimensions
-    const itemProps = item.props as PageItemProps & ItemWithDimensions;
-    
-    // Handle explicit dimensions if provided (for backward compatibility)
-    if (itemProps.dimensions?.height) {
-      const height = getDimensionInPx(itemProps.dimensions.height);
-      
-      // Validate height to ensure it's positive
-      if (isNaN(height) || height <= 0) {
-        console.warn(`Item has invalid height: ${itemProps.dimensions.height}. Using calculated height.`);
-        // Fall through to calculated height
-      } else {
-        return height;
-      }
-    }
-    
-    // Special handling for Layout components
-    if (componentName === 'Layout') {
-      // For layout components, calculate the height based on its children
-      // We'll use a base height plus height of tallest column
-      return mmToPx(10); // Base height that will be adjusted during layout processing
-    }
-    
-    // Calculate height for text items (ParagraphItem, HeadingItem, TextItem)
-    if (
-      componentName === 'TextItem' || 
-      componentName === 'ParagraphItem' || 
-      componentName === 'HeadingItem'
-    ) {
-      // Cast to TextItemProps for proper typing
-      const textProps = item.props as TextItemProps;
-      
-      // Get text properties
-      const fontSize = textProps.fontSize || 12; // Default font size
-      const lineHeight = typeof textProps.lineHeight === 'number' 
-        ? textProps.lineHeight 
-        : 1.5; // Default line height
-      
-      // Get the actual content
-      let content = '';
-      if (typeof textProps.children === 'string') {
-        content = textProps.children;
-      } else if (Array.isArray(textProps.children)) {
-        // Flatten children array to get all text content
-        content = React.Children.toArray(textProps.children)
-          .filter(child => typeof child === 'string')
-          .join(' ');
-      }
-      
-      // Calculate approximate characters per line (assuming average char width is 60% of font height)
-      const maxWidth = pageProps.maxWidth || 800;
-      const fontSizePx = ptToPx(fontSize);
-      const avgCharWidth = fontSizePx * 0.6;
-      const contentWidthPx = maxWidth - (mmToPx(40)); // Assuming 20mm padding on each side
-      const charsPerLine = Math.floor(contentWidthPx / avgCharWidth);
-      
-      // Calculate number of lines
-      const contentLength = content.length;
-      const lines = Math.max(1, Math.ceil(contentLength / charsPerLine));
-      
-      // Calculate height in pixels
-      const heightPx = lines * fontSizePx * lineHeight;
-      
-      // Add some padding for container and return
-      return heightPx + 10; // Adding 10px padding
-    }
-    
-    // For callout items, calculate based on content plus extra space
-    if (componentName === 'CalloutItem') {
-      // Base height for callout container
-      const baseHeight = mmToPx(15); // Starting with 15mm for padding/borders
-      
-      // Calculate content height if there's a child text
-      const calloutContent = itemProps.children;
-      if (calloutContent) {
-        // Create a simpler mock calculation
-        if (typeof calloutContent === 'string') {
-          // Rough estimation based on content length
-          return baseHeight + mmToPx(calloutContent.length / 50);
-        }
-        return baseHeight + mmToPx(10); // Default for complex content
-      }
-      
-      return baseHeight;
-    }
-    
-    // For other item types
-    // Use a height estimation based on component type
-    switch (componentName) {
-      case 'ShapeItem':
-        return mmToPx(15); // Default shape height
-      case 'ImageItem':
-        return mmToPx(50); // Default image height
-      case 'TableItem': {
-        // For tables, estimate based on approximate rows
-        // Safely access rows if available
-        const tableProps = item.props as any;
-        const rowCount = tableProps.rows?.length || 3;
-        return mmToPx(10 + rowCount * 8);
-      }
-      default:
-        return mmToPx(20); // Default height for unknown components
-    }
+    return calculateItemHeight(item, pageProps.maxWidth || 800);
   }, [pageProps.maxWidth]);
   
   // Function to extract Layout components and their related information
   const processLayouts = useCallback((items: React.ReactNode[]): {
-    layouts: LayoutInfo[];
+    documentLayouts: DocumentLayoutInfo[];
+    pageLayouts: PageLayoutInfo[];
     remainingItems: React.ReactNode[];
   } => {
-    const layouts: LayoutInfo[] = [];
+    const documentLayouts: DocumentLayoutInfo[] = [];
+    const pageLayouts: PageLayoutInfo[] = [];
     const remainingItems: React.ReactNode[] = [];
     
+    console.log('[PageKit DEBUG] Processing layouts for', items.length, 'items');
+    
     // First pass: identify Layout components
-    items.forEach(item => {
+    items.forEach((item, index) => {
       if (isValidElement(item)) {
         const componentType = item.type as any;
         const componentName = componentType?.displayName || '';
         
-        if (componentName === 'Layout') {
-          // Extract column definitions and validate
-          const layoutProps = item.props as { columns: ColumnDefinition[], children: React.ReactNode };
-          const columns = validateColumnWidths(layoutProps.columns, "Layout") || [];
+        console.log(`[PageKit DEBUG] Checking item ${index}, type: ${componentName}`);
+        
+        // Add additional checks for layout components
+        const isDocumentLayout = 
+          componentName === 'DocumentLayout' || 
+          (item as any).props?.['data-layout-type'] === 'document-column';
+        
+        const isPageLayout = 
+          componentName === 'PageLayout' || 
+          (item as any).props?.['data-layout-type'] === 'page-column';
+        
+        if (isDocumentLayout) {
+          console.log(`[PageKit DEBUG] Found DocumentLayout at index ${index}`);
+          // Extract document-level layout
+          const layoutProps = item.props as { 
+            columns: ColumnDefinition[], 
+            children: React.ReactNode,
+            pageBreakBefore?: boolean
+          };
+          const columns = validateColumnWidths(layoutProps.columns, "DocumentLayout") || [];
           
           // Extract children of the layout
           const layoutChildren = React.Children.toArray(layoutProps.children);
           
-          layouts.push({
+          documentLayouts.push({
             columns,
             items: layoutChildren,
-            parent: item as ReactElement
+            parent: item as ReactElement,
+            pageBreakBefore: layoutProps.pageBreakBefore ?? true,
+            pageBreakAfter: false, // DocumentLayouts don't need explicit pageBreakAfter
+            id: `doc-layout-${index}` // Add unique ID based on index
+          });
+        } else if (isPageLayout) {
+          console.log(`[PageKit DEBUG] Found PageLayout at index ${index}`);
+          // Extract page-specific layout (doesn't support cross-page flow)
+          const layoutProps = item.props as { 
+            columns: ColumnDefinition[], 
+            children: React.ReactNode
+          };
+          const columns = validateColumnWidths(layoutProps.columns, "PageLayout") || [];
+          
+          // Extract children of the layout
+          const layoutChildren = React.Children.toArray(layoutProps.children);
+          
+          pageLayouts.push({
+            columns,
+            items: layoutChildren,
+            parent: item as ReactElement,
+            id: `page-layout-${index}` // Add unique ID based on index
           });
         } else {
           // This is a regular item, not a layout
@@ -253,7 +330,17 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
       }
     });
     
-    return { layouts, remainingItems };
+    // Additional diagnostic info
+    if (documentLayouts.length === 0) {
+      console.warn('[PageKit DEBUG] No DocumentLayout components found! Check your imports and component structure.');
+    } else {
+      console.log(`[PageKit DEBUG] Found ${documentLayouts.length} DocumentLayout and ${pageLayouts.length} PageLayout components`);
+      documentLayouts.forEach((layout, idx) => {
+        console.log(`[PageKit DEBUG] DocumentLayout ${idx} has ${layout.items.length} children`);
+      });
+    }
+    
+    return { documentLayouts, pageLayouts, remainingItems };
   }, []);
   
   // Helper to get column index from an item
@@ -273,108 +360,202 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   }, []);
   
   // Function to distribute items within a layout's columns
-  const distributeLayoutItems = useCallback((layout: LayoutInfo, availableHeight: number): React.ReactNode[] => {
-    const { columns, items } = layout;
+  const distributeLayoutItems = useCallback((layout: DocumentLayoutInfo, availableHeight: number): React.ReactNode[] => {
+    const { columns, items, parent } = layout;
     const columnCount = columns.length;
     
-    // Initialize column height tracking
-    const columnHeights: number[] = Array(columnCount).fill(0);
-    const columnItems: React.ReactNode[][] = Array(columnCount).fill(0).map(() => []);
-    const unassignedItems: React.ReactNode[] = [];
+    console.log(`[PageKit DEBUG] Distributing layout items to columns. Available height: ${availableHeight}px`);
     
-    // Process each item and distribute across columns
-    items.forEach(item => {
-      if (isValidElement(item)) {
-        try {
-          const itemHeight = getItemHeight(item as ReactElement);
-          const columnIndex = getItemColumnIndex(item as ReactElement, columnCount);
+    // Cannot process invalid parent (should never happen)
+    if (!parent || !isValidElement(parent)) {
+      console.warn('Invalid layout parent element');
+      return [];
+    }
+    
+    // Keep track of which page we're on
+    let currentPage = 0;
+    const pageLayouts: React.ReactNode[] = [];
+    
+    // Pages of items, grouped by column
+    const pageColumnItems: Array<Array<React.ReactNode[]>> = []; // [page][column][items]
+    
+    // Initialize first page's columns
+    pageColumnItems[0] = Array(columnCount).fill(0).map(() => []);
+    
+    // Track current height of each column on current page
+    let columnHeights = Array(columnCount).fill(0);
+    
+    console.log(`[PageKit DEBUG] Layout has ${items.length} items to distribute across ${columnCount} columns`);
+    
+    // Process items with specific column indices first
+    items.forEach((item, itemIndex) => {
+      if (!isValidElement(item)) {
+        // Add non-elements to first column of current page
+        pageColumnItems[currentPage][0].push(item);
+        return;
+      }
+      
+      try {
+        const componentType = (item as ReactElement).type as any;
+        const componentName = componentType?.displayName || 'Unknown';
+        
+        const itemHeight = getItemHeight(item);
+        const columnIndex = getItemColumnIndex(item, columnCount);
+        
+        console.log(`[PageKit DEBUG] Item ${itemIndex} (${componentName}): Height=${itemHeight}px, ColumnIndex=${columnIndex}`);
+        
+        // Skip invalid column indices
+        if (columnIndex < 0 || columnIndex >= columnCount) {
+          // Default to first column
+          const column = 0;
+          const heightWithSpacing = columnHeights[column] > 0 
+            ? itemHeight + itemSpacingPx 
+            : itemHeight;
           
-          // Handle item with specific column index
-          if (columnIndex >= 0) {
-            // Calculate height with spacing
-            const heightWithSpacing = columnHeights[columnIndex] === 0 
-              ? itemHeight 
-              : itemHeight + itemSpacingPx;
-            
-            // Add the item to its specified column
-            columnItems[columnIndex].push(item);
-            columnHeights[columnIndex] += heightWithSpacing;
+          // Check if it fits on current page
+          if (columnHeights[column] + heightWithSpacing <= availableHeight) {
+            // Add to current page
+            pageColumnItems[currentPage][column].push(item);
+            columnHeights[column] += heightWithSpacing;
+            console.log(`[PageKit DEBUG] Item ${itemIndex} fits on page ${currentPage}, column ${column}. New column height: ${columnHeights[column]}px`);
           } else {
-            // Items without a specific column, collect for balanced distribution
-            unassignedItems.push(item);
+            // Start a new page
+            currentPage++;
+            console.log(`[PageKit DEBUG] Item ${itemIndex} doesn't fit on current page. Starting new page ${currentPage}`);
+            
+            // Initialize new page columns if needed
+            if (!pageColumnItems[currentPage]) {
+              pageColumnItems[currentPage] = Array(columnCount).fill(0).map(() => []);
+            }
+            
+            // Reset column heights for new page
+            columnHeights = Array(columnCount).fill(0);
+            
+            // Add item to the new page
+            pageColumnItems[currentPage][column].push(item);
+            columnHeights[column] = itemHeight;
+            console.log(`[PageKit DEBUG] Added item ${itemIndex} to new page ${currentPage}, column ${column}. New column height: ${columnHeights[column]}px`);
           }
-        } catch (error) {
-          console.warn('Error processing layout item:', error);
+          
+          return;
         }
-      } else {
-        // Non-element items
-        unassignedItems.push(item);
+        
+        // Calculate height with spacing if not first item
+        const heightWithSpacing = columnHeights[columnIndex] > 0 
+          ? itemHeight + itemSpacingPx 
+          : itemHeight;
+        
+        // Check if this item fits in the current page's column
+        if (columnHeights[columnIndex] + heightWithSpacing <= availableHeight) {
+          // Fits on current page
+          pageColumnItems[currentPage][columnIndex].push(item);
+          columnHeights[columnIndex] += heightWithSpacing;
+          console.log(`[PageKit DEBUG] Item ${itemIndex} fits on page ${currentPage}, column ${columnIndex}. New column height: ${columnHeights[columnIndex]}px`);
+        } else {
+          // Doesn't fit - go to next page
+          currentPage++;
+          console.log(`[PageKit DEBUG] Item ${itemIndex} doesn't fit on current page. Starting new page ${currentPage}`);
+          
+          // Initialize new page columns if needed
+          if (!pageColumnItems[currentPage]) {
+            pageColumnItems[currentPage] = Array(columnCount).fill(0).map(() => []);
+          }
+          
+          // Reset column heights for new page
+          columnHeights = Array(columnCount).fill(0);
+          
+          // Add item to the new page
+          pageColumnItems[currentPage][columnIndex].push(item);
+          columnHeights[columnIndex] = itemHeight;
+          console.log(`[PageKit DEBUG] Added item ${itemIndex} to new page ${currentPage}, column ${columnIndex}. New column height: ${columnHeights[columnIndex]}px`);
+        }
+      } catch (error) {
+        console.warn(`[PageKit DEBUG] Error processing layout item ${itemIndex}:`, error);
       }
     });
     
-    // Distribute unassigned items to balance columns
-    unassignedItems.forEach(item => {
-      if (isValidElement(item)) {
-        // Find the column with the least height
-        const minHeightColumnIndex = columnHeights.indexOf(Math.min(...columnHeights));
-        const itemHeight = getItemHeight(item as ReactElement);
-        
-        // Calculate height with spacing if needed
-        const heightWithSpacing = columnHeights[minHeightColumnIndex] === 0 
-          ? itemHeight 
-          : itemHeight + itemSpacingPx;
-        
-        // Add to the column with least height
-        columnItems[minHeightColumnIndex].push(item);
-        columnHeights[minHeightColumnIndex] += heightWithSpacing;
-      } else {
-        // For non-element items, add to first column
-        columnItems[0].push(item);
-      }
-    });
+    console.log(`[PageKit DEBUG] Layout distribution complete. Creating ${currentPage + 1} page layouts`);
     
-    // Create the structured layout by wrapping items in column divs
-    const wrappedColumns = columns.map((column, idx) => {
-      return React.createElement(
+    // Now create layout components for each page
+    // IMPORTANT: Instead of nesting items inside a DocumentLayout wrapper,
+    // we now just return the items for each page directly so they can be
+    // rendered as-is on each page
+    const paginatedItems: React.ReactNode[] = [];
+    
+    for (let pageIndex = 0; pageIndex <= currentPage; pageIndex++) {
+      const pageItems = pageColumnItems[pageIndex];
+      
+      // Check if there are any items on this page
+      const hasItems = pageItems.some(column => column.length > 0);
+      if (!hasItems) continue;
+
+      // Create direct items for this page with column metadata
+      const flattenedItems = pageItems.flatMap((columnItems, colIdx) => {
+        return columnItems.map(item => {
+          // If the item is a valid element, clone it with columnIndex and metadata
+          if (isValidElement(item)) {
+            // Add columnIndex to props plus layout metadata
+            const newProps = {
+              ...item.props,
+              columnIndex: colIdx,
+              'data-layout-id': layout.id,
+              'data-layout-page': pageIndex,
+              'data-layout-total-pages': currentPage + 1, 
+              key: `${layout.id}-page-${pageIndex}-col-${colIdx}-${Math.random().toString(36).slice(2, 7)}`
+            };
+            return React.cloneElement(item, newProps);
+          }
+          return item;
+        });
+      });
+
+      // Add page break metadata for the Document component
+      const pageBreakBefore = pageIndex === 0 ? layout.pageBreakBefore : true;
+      const pageBreakAfter = pageIndex === currentPage ? layout.pageBreakAfter : false;
+      
+      // Create a wrapper with layout metadata but NOT a DocumentLayout component
+      // This lets the items be rendered directly on the page
+      const pageWrapper = React.createElement(
         'div',
-        { 
-          key: `layout-column-${idx}`,
-          className: 'page-layout-column',
-          style: {
-            width: `${column.width}%`,
-            backgroundColor: column.backgroundColor,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: `${itemSpacingPx}px`
-          },
-          'data-column-index': idx
+        {
+          'data-page-break-before': pageBreakBefore,
+          'data-page-break-after': pageBreakAfter,
+          'data-layout-id': layout.id,
+          'data-layout-page': pageIndex,
+          'data-layout-total-pages': currentPage + 1,
+          'data-column-count': columnCount,
+          className: 'document-layout-items',
+          key: `layout-wrapper-${layout.id}-page-${pageIndex}`
         },
-        columnItems[idx]
+        ...flattenedItems
       );
-    });
+      
+      paginatedItems.push(pageWrapper);
+    }
     
-    // Clone the original layout element with the new column structure
-    return [
-      React.cloneElement(
-        layout.parent as ReactElement,
-        {},
-        ...wrappedColumns
-      )
-    ];
+    console.log(`[PageKit DEBUG] Created ${paginatedItems.length} page item groups from ${currentPage + 1} pages`);
+    return paginatedItems;
   }, [getItemHeight, getItemColumnIndex, itemSpacingPx]);
   
   // Distribute items into pages based on their heights - with layout awareness
   useEffect(() => {
+    console.log('[PageKit DEBUG] Starting document pagination process');
+    
     // Convert to array and filter out null/undefined items
     const childrenArray = Children.toArray(children).filter(Boolean);
     
     if (childrenArray.length === 0) {
+      console.log('[PageKit DEBUG] No children to paginate');
       setPages([]);
       return;
     }
     
+    console.log(`[PageKit DEBUG] Processing ${childrenArray.length} children items`);
+    
     // Process layouts and extract items
-    const { layouts, remainingItems } = processLayouts(childrenArray);
+    const { documentLayouts, pageLayouts, remainingItems } = processLayouts(childrenArray);
+    
+    console.log(`[PageKit DEBUG] Found ${documentLayouts.length} document layouts, ${pageLayouts.length} page layouts, and ${remainingItems.length} remaining items`);
     
     // Default to 1 column if no document-level columns defined
     const columnCount = validatedColumns?.length || 1;
@@ -387,18 +568,58 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
     // Track unassigned items (no specific columnIndex) for each page
     let unassignedItems: React.ReactNode[] = [];
     
-    // First process layouts - each layout gets its own structure
-    layouts.forEach(layout => {
+    // Process all layouts to get layout components that may span multiple pages
+    documentLayouts.forEach((layout, layoutIndex) => {
       // Distribute items within this layout
-      const layoutWithItems = distributeLayoutItems(layout, availableHeight);
+      const layoutComponents = distributeLayoutItems(layout, availableHeight);
       
-      // Add layout to current page
-      currentPage.push(...layoutWithItems);
-      
-      // Ensure page break after a layout
-      if (currentPage.length > 0) {
-        paginatedPages.push([...currentPage]);
-        currentPage = [];
+      // Process each layout component (each represents a page of the layout)
+      layoutComponents.forEach((layoutComponent, componentIndex) => {
+        if (isValidElement(layoutComponent)) {
+          // We now expect a div wrapper with metadata instead of a DocumentLayout component
+          const props = layoutComponent.props;
+          
+          // Get metadata from the wrapper
+          const needsPageBreakBefore = props['data-page-break-before'] === true;
+          
+          // Handle page break before if needed
+          if (needsPageBreakBefore && currentPage.length > 0) {
+            paginatedPages.push([...currentPage]);
+            currentPage = [];
+          }
+          
+          // Add the unprocessed items to the current page, preserving all children
+          const layoutItems = React.Children.toArray(layoutComponent.props.children);
+          
+          // Create a reference to the layout for column information
+          const layoutReference = React.createElement(
+            'div',
+            {
+              'data-layout-reference': 'true',
+              'data-column-count': props['data-column-count'] || 1,
+              'data-layout-id': props['data-layout-id'],
+              key: `layout-ref-${props['data-layout-id']}-${componentIndex}`
+            }
+          );
+          
+          // Add the reference first and then the items
+          currentPage.push(layoutReference, ...layoutItems);
+          
+          // Handle page break after
+          const needsPageBreakAfter = props['data-page-break-after'] === true;
+          if (needsPageBreakAfter && currentPage.length > 0) {
+            paginatedPages.push([...currentPage]);
+            currentPage = [];
+          }
+        }
+      });
+    });
+    
+    // Add PageLayout components to remainingItems to be processed with regular page content
+    // PageLayouts don't span pages and are treated as single page items
+    pageLayouts.forEach(layout => {
+      if (layout.parent) {
+        remainingItems.push(layout.parent);
       }
     });
     
@@ -427,8 +648,8 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
             return;
           }
           
-          const itemHeight = getItemHeight(item as ReactElement);
-          const columnIndex = getItemColumnIndex(item as ReactElement, columnCount);
+          const itemHeight = getItemHeight(item);
+          const columnIndex = getItemColumnIndex(item, columnCount);
           
           // Handle item with specific column index
           if (columnIndex >= 0) {
@@ -486,7 +707,7 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
         
         // Get the next unassigned item
         const item = unassignedItems[itemsAdded];
-        const itemHeight = isValidElement(item) ? getItemHeight(item as ReactElement) : mmToPx(10);
+        const itemHeight = isValidElement(item) ? getItemHeight(item) : mmToPx(10);
         
         // Calculate height with spacing if needed
         const heightWithSpacing = columnHeights[minHeightColumnIndex] === 0 
@@ -525,6 +746,9 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
       paginatedPages.push(currentPage);
     }
     
+    // At the end of the function, log the results
+    console.log(`[PageKit DEBUG] Pagination complete. Created ${paginatedPages.length} pages`);
+    
     setPages(paginatedPages);
   }, [
     children, 
@@ -540,7 +764,7 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   // Handle empty document
   if (pages.length === 0) {
     return (
-      <div ref={documentRef} className={className}>
+      <div ref={documentRef} className={className} style={style}>
         <Page
           {...pageProps}
           pageNumber={1}
@@ -556,7 +780,7 @@ const DocumentContent: React.FC<DocumentProps> = React.memo(({
   }
   
   return (
-    <div ref={documentRef} className={className}>
+    <div ref={documentRef} className={className} style={style}>
       {pages.map((pageItems, index) => {
         // Determine if this page has legacy column definition
         const pageSpecificColumns = pageItems.find(item => {

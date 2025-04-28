@@ -16,8 +16,9 @@ export * from './hooks';
 export { Document } from './components/Document';
 export { Page } from './components/Page';
 export type { PageProps, ColumnDefinition } from './components/Page';
-export { Layout } from './components/Layout';
-export type { LayoutProps } from './components/Layout';
+// Layout components
+export { DocumentLayout } from './components/DocumentLayout';
+export { PageLayout } from './components/PageLayout';
 export { 
   PageItem, 
   ParagraphItem,

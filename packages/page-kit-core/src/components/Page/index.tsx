@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, createContext, useContext, useMemo, useCallback, ReactElement } from 'react';
 import { cn } from '../../utils/react-helper';
 import { usePageKitConfig } from '../../config';
 import { DIN_A4_WIDTH_MM, DIN_A4_HEIGHT_MM } from '../../utils/dimension-helper';
@@ -191,16 +191,32 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     }), [containerWidth, actualMaxWidth]);
     
     // Style for the actual page
-    const pageStyle = useMemo(() => ({
-      width: `${actualMaxWidth}px`,
-      height: `${pageHeight}px`,
-      padding: paddingCSS,
-      backgroundColor,
-      transform: `scale(${scale})`,
-      transformOrigin: 'top left',
-      display: 'flex',
-      flexDirection: 'column' as const,
-    }), [actualMaxWidth, pageHeight, paddingCSS, backgroundColor, scale]);
+    const pageStyle = useMemo(() => {
+      // Base style
+      const style: React.CSSProperties = {
+        width: `${actualMaxWidth}px`,
+        height: `${pageHeight}px`,
+        padding: paddingCSS,
+        backgroundColor,
+        transform: `scale(${scale})`,
+        transformOrigin: 'top left',
+        display: 'flex',
+        flexDirection: 'column' as const,
+        position: 'relative',
+      };
+
+      // Add page number label for debugging
+      if (pageNumber !== undefined) {
+        // Add subtle alternating background color for even/odd pages
+        if (pageNumber % 2 === 0) {
+          style.backgroundColor = 'var(--debug-even-page-color, #f8f8f8)';
+        } else {
+          style.backgroundColor = 'var(--debug-odd-page-color, #ffffff)';
+        }
+      }
+
+      return style;
+    }, [actualMaxWidth, pageHeight, paddingCSS, backgroundColor, scale, pageNumber]);
     
     // The overall height that accommodates the scaled content
     const scaledHeight = pageHeight * scale;
@@ -318,7 +334,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
     // Render column layout if columns are defined - using our extracted function
     const renderContent = () => {
       // If no columns defined, return children directly
-      if (!processedColumns || processedColumns.length === 0 || !columnItems) {
+      if (!processedColumns || processedColumns.length === 0) {
         return (
           <div className="page-content" style={contentStyle}>
             {children}
@@ -326,7 +342,65 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
         );
       }
       
-      // If columns are defined, render columnized content
+      // Check for layout references to handle DocumentLayout content
+      const childArray = React.Children.toArray(children);
+      const layoutReferences = childArray.filter(
+        child => React.isValidElement(child) && (child as ReactElement).props?.['data-layout-reference'] === 'true'
+      ) as ReactElement[];
+      
+      // If we have layout references, we need to organize items by column
+      if (layoutReferences.length > 0) {
+        // Get layout reference metadata
+        const layoutReference = layoutReferences[0];
+        const columnCount = Number(layoutReference.props?.['data-column-count'] || processedColumns.length);
+        
+        // Create columns array
+        const cols: React.ReactNode[][] = Array(columnCount).fill(0).map(() => []);
+        
+        // Group items by column
+        childArray.forEach(child => {
+          // Skip layout references
+          if (React.isValidElement(child) && (child as ReactElement).props?.['data-layout-reference'] === 'true') {
+            return;
+          }
+          
+          if (React.isValidElement(child)) {
+            const columnIndex = Number((child as ReactElement).props?.columnIndex || 0);
+            if (columnIndex >= 0 && columnIndex < columnCount) {
+              cols[columnIndex].push(child);
+            } else {
+              cols[0].push(child);
+            }
+          } else {
+            cols[0].push(child);
+          }
+        });
+        
+        // Render columns with items
+        return (
+          <div className="page-content columns" style={contentStyle}>
+            {Array.from({length: columnCount}).map((_, idx) => {
+              const column = processedColumns[idx] || { width: 100 / columnCount };
+              
+              const columnStyle: React.CSSProperties = {
+                width: `${column.width}%`,
+                backgroundColor: column.backgroundColor,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: `${config.layout?.itemSpacing || 0}mm`
+              };
+              
+              return (
+                <div key={`column-${idx}`} className="page-column" style={columnStyle}>
+                  {cols[idx]}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+      
+      // If we don't have layout references, use the standard column organization
       return (
         <div className="page-content columns" style={contentStyle}>
           {processedColumns.map((column, idx) => {
@@ -340,7 +414,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
             
             return (
               <div key={`column-${idx}`} className="page-column" style={columnStyle}>
-                {columnItems[idx]}
+                {columnItems?.[idx]}
               </div>
             );
           })}
@@ -360,12 +434,33 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
       columns: processedColumns
     }), [scale, actualMaxWidth, pageHeight, pageNumber, totalPages, processedColumns]);
     
+    // Add a debug element to show page number and dimensions
+    const DebugInfo = pageNumber !== undefined ? (
+      <div 
+        style={{
+          position: 'absolute',
+          top: '2mm',
+          right: '2mm',
+          background: 'rgba(0,0,0,0.1)',
+          color: 'rgba(0,0,0,0.6)',
+          padding: '1mm 2mm',
+          borderRadius: '2mm',
+          fontSize: '8pt',
+          fontWeight: 'bold',
+          zIndex: 1000,
+          pointerEvents: 'none'
+        }}
+      >
+        Page {pageNumber} of {totalPages}
+      </div>
+    ) : null;
+    
     return (
       <div 
-        ref={ref} 
-        className={cn('page-container', className)} 
-        style={containerStyle}
+        ref={ref}
         {...domSafeProps}
+        className={cn('page-container', className)}
+        style={containerStyle}
       >
         <div 
           className="page-scaling-wrapper"
@@ -382,6 +477,7 @@ export const Page = React.memo(React.forwardRef<HTMLDivElement, PageProps>(
             style={pageStyle}
           >
             <PageContext.Provider value={pageContextValue}>
+              {DebugInfo}
               {renderHeader()}
               {renderContent()}
               {renderFooter()}
