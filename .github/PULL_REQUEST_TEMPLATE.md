@@ -36,7 +36,7 @@ Fixes #
 
 <!-- If applicable, add screenshots to help explain your changes -->
 
-## Checklist:
+## Checklist
 
 <!-- Please mark the relevant options with an 'x' (e.g. [x]) -->
 
